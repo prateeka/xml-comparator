@@ -1,0 +1,18 @@
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <DiscoverResponse xmlns="urn:schemas-microsoft-com:xml-analysis">
+      <return>
+        <root xmlns="urn:schemas-microsoft-com:xml-analysis:rowset">
+          <row>
+            <CATALOG_NAME/>
+            <CUBE_NAME>Dave_default</CUBE_NAME>
+            <DIMENSION_UNIQUE_NAME>[Geography]</DIMENSION_UNIQUE_NAME>
+            <HIERARCHY_UNIQUE_NAME>[Geography].[Geography]</HIERARCHY_UNIQUE_NAME>
+            <IS_PLACEHOLDERMEMBER>false</IS_PLACEHOLDERMEMBER>
+            <IS_DATAMEMBER>false</IS_DATAMEMBER>
+          </row>
+        </root>
+      </return>
+    </DiscoverResponse>
+  </soap:Body>
+</soap:Envelope>

@@ -12,7 +12,7 @@
   <root level="info">
     <appender-ref ref="STDOUT"/>
   </root>
-  <logger name="com.prateek.xmlcompare.Main" level="INFO"/>
+  <logger name="com.prateek.xmlcompare.Main" level="debug"/>
 <!--  <logger name="com.prateek.xmlcompare.Comparator" level="debug"/>-->
 
 </configuration>
