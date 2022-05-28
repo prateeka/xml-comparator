@@ -22,8 +22,8 @@ object Main extends App {
     val (exp, act) = (clp.expected(), clp.actual())
     logger.info(s"expected: $exp actual: ${clp.actual}")
     val xmlReaderFunction = XmlReader(FileListReader.default)
-    val ef = xmlReaderFunction(exp)
-    val af = xmlReaderFunction(act)
+    val ef: Seq[RootNodeSource] = xmlReaderFunction(exp)
+    val af: Seq[RootNodeSource] = xmlReaderFunction(act)
 
     Verification(ef.filterSuccess, af.filterSuccess)
   }

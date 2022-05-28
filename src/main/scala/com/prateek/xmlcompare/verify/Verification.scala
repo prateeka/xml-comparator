@@ -13,6 +13,7 @@ import java.io.File
   */
 case class RootNodeSource(file: File, tns: Try[Node])
 
+// Stores the parent xml node tags
 case class Context(en: List[String] = Nil) {
   lazy val path: String = en.mkString(",")
 

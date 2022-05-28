@@ -11,6 +11,13 @@ object XmlReader {
 
   private val logger = com.typesafe.scalalogging.Logger(getClass)
 
+  /** Traverses the [[f:File]] directory to retrieve all the files in it and then reads each file to return its corresponding [[ComparisonNode]].
+    * If [[f:File]] is only a file then reads it to return its corresponding [[ComparisonNode]].
+    *
+    * @param flr helps traverse the f:File
+    * @param f   can be file or directory.
+    * @return [[Seq]] If f is a file then only a single [[RootNodeSource]] is returned else [[Seq[RootNodeSource]]]
+    */
   def apply(flr: FileListReader)(f: File): Seq[RootNodeSource] = {
     val fs: Seq[File] = flr(f)
     fs.map(f1 => {
@@ -31,7 +38,10 @@ object XmlReader {
     })
   }
 
-  object DiscoverResponse {
+  // top xml nodes to be compared
+  trait ComparisonNode
+
+  object DiscoverResponse extends ComparisonNode {
     def unapply(node: Node): Option[Node] = {
       val ns = node \\ "Body" \ "DiscoverResponse"
       ns.toList match {
