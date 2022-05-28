@@ -8,6 +8,9 @@ import scala.xml.Utility.trim
 
 import java.io.File
 
+/** Stores the file and its corresponding xml node or a failure reading the file. If the file is valid then it is used for xml comparison.
+  * tns: xml node like DiscoverRequest, DiscoverResponse or other valid nodes. The file is valid if it contains one of these nodes else is invalid.
+  */
 case class RootNodeSource(file: File, tns: Try[Node])
 
 case class Context(en: List[String] = Nil) {

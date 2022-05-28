@@ -16,19 +16,14 @@ object Main extends App {
   @main
   def execute(args: String*): Unit = {
     import com.prateek.xmlcompare.verify.LabelVerification
-    /*
-                val conf = new Conf (args)
-                val fFiles = FileNodeTuple (conf.first () )
-                val sFiles = FileNodeTuple (conf.second () )
-                val crs = Comparator (fFiles, sFiles)
-                crs
-     */
     logger.debug(s"args: $args")
     val clp = CommandLineParser[File](args)
+    //    TODO: add one more flag to indicate if the input refer to files or directories
     val (exp, act) = (clp.expected(), clp.actual())
     logger.info(s"expected: $exp actual: ${clp.actual}")
-    val ef = XmlReader(FileListReader.default, exp)
-    val af = XmlReader(FileListReader.default, act)
+    val xmlReaderFunction = XmlReader(FileListReader.default)
+    val ef = xmlReaderFunction(exp)
+    val af = xmlReaderFunction(act)
 
     Verification(ef.filterSuccess, af.filterSuccess)
   }

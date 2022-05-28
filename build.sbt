@@ -6,7 +6,7 @@ version := "0.1"
 
 scalaVersion := "3.1.2"
 
-lazy val xmlVersion = "2.0.1"
+lazy val xmlVersion = "2.1.0"
 lazy val loggingVersion = "3.9.4"
 lazy val scallopVersion = "4.0.3"
 lazy val scalaTestVersion = "3.2.9"

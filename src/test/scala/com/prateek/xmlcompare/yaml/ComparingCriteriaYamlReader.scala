@@ -21,4 +21,4 @@ class ComparingCriteriaYamlReaderTest extends AnyFunSpec {
     }
   }
 }
-*/
+ */
