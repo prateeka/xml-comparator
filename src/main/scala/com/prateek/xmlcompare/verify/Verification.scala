@@ -16,7 +16,7 @@ case class RootNodeSource(file: File, tns: Try[Node])
 // Stores the parent xml node tags
 case class Context(en: List[String] = Nil) {
   lazy val path: String = en.mkString(",")
-
+//TODO: why need a list and can this not be replaced by a string?
   def append(n: Node): Context = {
     this.copy(en.:+(n.label))
   }
@@ -38,25 +38,23 @@ object Verification {
     *
     * @param exp list of expected files
     * @param act list of actual files
-    * @return VerificationResult describing if the two sources match else the node
-    *         where the mismatch occurred.
+    * @param vp  provides [[Verification]] for the absolute node tag
+    * @return VerificationResult describing if the two files match else the node where the mismatch occurred.
     */
   def apply(
       exp: Seq[RootNodeSource],
       act: Seq[RootNodeSource],
       vp: VerificationProvider = VerificationProvider.default
-  ): Seq[SourceVerificationResult] = {
+  ): Seq[FileVerificationResult] = {
     exp
       .flatMap({ case RootNodeSource(ef, Success(en)) =>
         val v = vp(en.label).head
-        val tuple2: Seq[(File, VerificationResult)] =
-          act.map({ case RootNodeSource(af, Success(an)) =>
-            val vr = v.apply(en, an)(using Context())
-            (af, vr)
-          })
-        tuple2.map({ case (af, vr) =>
-          SourceVerificationResult(ef, af, vr)
+        val tuple2: Seq[FileVerificationResult] = act.map({
+          case RootNodeSource(af, Success(an)) =>
+            val vr: VerificationResult = v.apply(en, an)(using Context())
+            FileVerificationResult(ef, af, vr)
         })
+        tuple2
       })
   }
 }
@@ -76,7 +74,7 @@ case class NodeVerification(vp: VerificationProvider) extends Verification {
      Compare expected vs actual node until first Mismatch occurs. If no Mismatch instances are found then return
      Match instance
      */
-    val vs = vp(nctx.path)
+    val vs: Seq[Verification] = vp(nctx.path)
     object VerificationFailure {
       def unapply(v: Verification): Option[VerificationResult] = Option(
         v(exp, act)(using nctx)
@@ -163,7 +161,7 @@ case class NodeNotFound(n: String) extends Mismatch(n)
 
 case class NodeTextNotFound(n: String) extends Mismatch(n)
 
-case class SourceVerificationResult(
+case class FileVerificationResult(
     exp: File,
     act: File,
     verificationResult: VerificationResult

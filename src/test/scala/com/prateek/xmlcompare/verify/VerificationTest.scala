@@ -30,13 +30,13 @@ class VerificationTest extends AnyFunSpec {
       val ars = Seq(ars1, ars2)
       val vp: VerificationProvider = _ => Seq(LabelVerification)
       val svr = Verification(ers, ars, vp)
-      assert(svr.contains(SourceVerificationResult("f1", "f1", Match)))
-      assert(svr.contains(SourceVerificationResult("f1", "f1", Match)))
+      assert(svr.contains(FileVerificationResult("f1", "f1", Match)))
+      assert(svr.contains(FileVerificationResult("f1", "f1", Match)))
       assert(
-        svr.contains(SourceVerificationResult("f2", "f1", NodeNotFound("")))
+        svr.contains(FileVerificationResult("f2", "f1", NodeNotFound("")))
       )
       assert(
-        svr.contains(SourceVerificationResult("f2", "f2", Match))
+        svr.contains(FileVerificationResult("f2", "f2", Match))
       )
     }
   }
