@@ -58,6 +58,6 @@ class XmlReaderTest extends AnyFunSpec {
       val fileUrl = getClass.getResource(fn)
       new File(fileUrl.toURI)
     }
-    XmlReader(flr, f)
+    XmlReader(flr)(f)
   }
 }
