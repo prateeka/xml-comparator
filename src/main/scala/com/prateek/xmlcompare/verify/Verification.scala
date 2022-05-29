@@ -47,16 +47,37 @@ object Verification {
       vp: VerificationProvider = VerificationProvider.default
   ): Seq[FileVerificationResult] = {
     exp
-      .flatMap({ case RootNodeSource(ef, Success(en)) =>
+      .map({ case RootNodeSource(ef, Success(en)) =>
         val v = vp(en.label).head
-        val tuple2: Seq[FileVerificationResult] = act.map({
+        //        TODO: stop at the first exp & act match instead of going through all the act files
+        // returns a result of an expFile match with all the actFiles
+        val tuple2: Seq[FileVerificationResultTuple2] = act.map({
           case RootNodeSource(af, Success(an)) =>
             val vr: VerificationResult = v.apply(en, an)(using Context())
-            FileVerificationResult(ef, af, vr)
+            FileVerificationResultTuple2(af, vr)
         })
-        tuple2
+        // determine the best actFile match for an expFile
+        val fvr = {
+          val fvrt2 = tuple2.max
+          FileVerificationResult(ef, fvrt2.f, fvrt2.vr)
+        }
+        fvr
       })
   }
+}
+
+case class FileVerificationResultTuple2(f: File, vr: VerificationResult)
+
+object FileVerificationResultTuple2 {
+  given vo: Ordering[FileVerificationResultTuple2] with
+    override def compare(
+        x: FileVerificationResultTuple2,
+        y: FileVerificationResultTuple2
+    ): Int = (x.vr, y.vr) match
+      case (_ @Match, _: VerificationResult) => 1
+      case (_: VerificationResult, _ @Match) => -1
+      case (a: Mismatch, b: Mismatch) =>
+        a.label().length.compare(b.label().length)
 }
 
 /** Compares two nodes using a list of [[Verifiction]] provided by a [[VerificationProvider]]. It follow a fail fast
@@ -141,15 +162,6 @@ case object LabelVerification extends Verification {
 }
 
 trait VerificationResult
-
-object VerificationResult {
-  given vo: Ordering[VerificationResult] = {
-    case (_ @Match, _: VerificationResult) => 1
-    case (_: VerificationResult, _ @Match) => -1
-    case (a: Mismatch, b: Mismatch) =>
-      a.label().length.compare(b.label().length)
-  }
-}
 
 case object Match extends VerificationResult
 
