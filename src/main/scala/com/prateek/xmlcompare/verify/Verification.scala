@@ -75,13 +75,13 @@ case class NodeVerification(vp: VerificationProvider) extends Verification {
      Match instance
      */
     val vs: Seq[Verification] = vp(nctx.path)
-    object VerificationFailure {
+    object Verifier {
       def unapply(v: Verification): Option[VerificationResult] = Option(
         v(exp, act)(using nctx)
       )
     }
-    val maybeMismatch = vs.collectFirst({
-      case VerificationFailure(mm: Mismatch) => mm
+    val maybeMismatch = vs.collectFirst({ case Verifier(mm: Mismatch) =>
+      mm
     })
     maybeMismatch.getOrElse(Match)
   }
