@@ -3,7 +3,7 @@ package com.prateek.xmlcompare
 import org.rogach.scallop.stringConverter
 import org.scalatest.funspec.AnyFunSpec
 
-class CommandLineParserTest extends AnyFunSpec {
+class CommandLineParserSpec extends AnyFunSpec {
   describe("command line arguments are correctly read") {
     it("-a and -e are read") {
       val a2 = "file2"

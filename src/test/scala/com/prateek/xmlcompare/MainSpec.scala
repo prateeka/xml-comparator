@@ -3,7 +3,7 @@ import org.scalatest.funspec.AnyFunSpec
 
 import com.prateek.xmlcompare.compare.{FileNotFound, NodeNotFound, Subset}
 
-class MainTest extends AnyFunSpec {
+class MainSpec extends AnyFunSpec {
   describe("Comparator behavior") {
     describe(
       "when one file is indented and corresponding match unindented"

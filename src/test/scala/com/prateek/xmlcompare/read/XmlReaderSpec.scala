@@ -14,7 +14,7 @@ import com.prateek.xmlcompare.read.{
 }
 import com.prateek.xmlcompare.verify.RootNodeSource
 
-class XmlReaderTest extends AnyFunSpec {
+class XmlReaderSpec extends AnyFunSpec {
 
   def nodeLabel(rns: Seq[RootNodeSource]): String = {
     object SingletonNode {
@@ -33,21 +33,19 @@ class XmlReaderTest extends AnyFunSpec {
     }
   }
 
-  describe("test for xml read") {
-    it("non xml file input returns empty Seq") {
-      val node = nodeSeqReader(_ => Seq.empty, "empty.txt")
-      assertResult(Seq.empty)(node)
-    }
+  it("non xml file input returns empty Seq") {
+    val node = nodeSeqReader(_ => Seq.empty, "empty.txt")
+    assertResult(Seq.empty)(node)
+  }
 
-    it("throw exception for non matching xml") {
-      val node = nodeSeqReader(f => Seq(f), "invalidDiscoverResponse.xml")
-      assertThrows[XmlNodeParsingException](nodeLabel(node))
-    }
+  it("throw exception for non matching xml") {
+    val node = nodeSeqReader(f => Seq(f), "invalidDiscoverResponse.xml")
+    assertThrows[XmlNodeParsingException](nodeLabel(node))
+  }
 
-    it("read valid DISCOVER response") {
-      val node = nodeSeqReader(f => Seq(f), "validDiscoverResponse.xml")
-      assertResult("DiscoverResponse")(nodeLabel(node))
-    }
+  it("read valid DISCOVER response") {
+    val node = nodeSeqReader(f => Seq(f), "validDiscoverResponse.xml")
+    assertResult("DiscoverResponse")(nodeLabel(node))
   }
 
   private def nodeSeqReader(

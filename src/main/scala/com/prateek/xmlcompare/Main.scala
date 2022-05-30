@@ -7,7 +7,7 @@ import java.io.File
 import org.rogach.scallop.fileConverter
 
 import com.prateek.xmlcompare.read.{FileListReader, XmlReader}
-import com.prateek.xmlcompare.verify.{RootNodeSource, Verification}
+import com.prateek.xmlcompare.verify.{RootNodeSource, Verifier}
 
 object Main extends App {
 
@@ -15,7 +15,7 @@ object Main extends App {
 
   @main
   def execute(args: String*): Unit = {
-    import com.prateek.xmlcompare.verify.LabelVerification
+    import com.prateek.xmlcompare.verify.LabelVerifier
     logger.debug(s"args: $args")
     val clp = CommandLineParser[File](args)
     //    TODO: add one more flag to indicate if the input refer to files or directories
@@ -25,7 +25,7 @@ object Main extends App {
     val ef: Seq[RootNodeSource] = xmlReaderFunction(exp)
     val af: Seq[RootNodeSource] = xmlReaderFunction(act)
 
-    Verification(ef.filterSuccess, af.filterSuccess)
+    Verifier(ef.filterSuccess, af.filterSuccess)
   }
 
   extension (s: Seq[RootNodeSource]) {
