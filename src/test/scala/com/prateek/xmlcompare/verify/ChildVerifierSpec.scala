@@ -68,7 +68,7 @@ class ChildVerifierSpec extends AnyFunSpec {
     }
   }
 
-  def run(en: Node, an: Node): VerificationResult = {
+  private def run(en: Node, an: Node): VerificationResult = {
     ChildVerifier(mv)(en, an)(using Context())
   }
 }
