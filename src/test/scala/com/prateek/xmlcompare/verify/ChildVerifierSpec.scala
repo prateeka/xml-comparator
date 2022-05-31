@@ -6,6 +6,15 @@ import org.scalatest.funspec.AnyFunSpec
 
 class ChildVerifierSpec extends AnyFunSpec {
 
+  private val mv = new Verifier {
+    override def apply(exp: Node, act: Node)(using
+        ctx: Context
+    ): VerificationResult = {
+      if exp.equals(act) then Match
+      else NodeNotFound(exp.label)
+    }
+  }
+
   describe("when all the expected nodes match subset of actual nodes") {
     it("should return Match") {
       val en = <Node>
@@ -21,15 +30,7 @@ class ChildVerifierSpec extends AnyFunSpec {
         <Node4/>
         <Node5/>
       </Node>
-      val mv = new Verifier {
-        override def apply(exp: Node, act: Node)(using
-            ctx: Context
-        ): VerificationResult = {
-          if exp.equals(act) then Match
-          else NodeNotFound(exp.label)
-        }
-      }
-      val result = ChildVerifier(mv)(en, an)(using Context())
+      val result = run(en, an)
       assertResult(Match)(result)
     }
   }
@@ -46,15 +47,7 @@ class ChildVerifierSpec extends AnyFunSpec {
         <Node2/>
         <Node5/>
       </Node>
-      val mv = new Verifier {
-        override def apply(exp: Node, act: Node)(using
-            ctx: Context
-        ): VerificationResult = {
-          if exp.equals(act) then Match
-          else NodeNotFound(exp.label)
-        }
-      }
-      val result = ChildVerifier(mv)(en, an)(using Context())
+      val result = run(en, an)
       assertResult(NodeNotFound("Node1"))(result)
     }
   }
@@ -70,16 +63,12 @@ class ChildVerifierSpec extends AnyFunSpec {
         <Node1/>
         <Node2/>
       </Node>
-      val mv = new Verifier {
-        override def apply(exp: Node, act: Node)(using
-            ctx: Context
-        ): VerificationResult = {
-          if exp.equals(act) then Match
-          else NodeNotFound(exp.label)
-        }
-      }
-      val result = ChildVerifier(mv)(en, an)(using Context())
+      val result = run(en, an)
       assertResult(NodeNotFound("Node5"))(result)
     }
+  }
+
+  def run(en: Node, an: Node): VerificationResult = {
+    ChildVerifier(mv)(en, an)(using Context())
   }
 }
