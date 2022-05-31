@@ -1,22 +1,43 @@
 package com.prateek.xmlcompare.yaml
 
-/*
+import java.io.InputStreamReader
 
-import scala.language.implicitConversions
+import cats.syntax.either.*
 
-import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
+import io.circe.*
+import io.circe.generic.semiauto.*
 
-import java.io.{File, FileInputStream}
-import java.util
+object ComparingCriteriaYamlReader extends App {
+  implicit val discoverConfigDecoder: Decoder[Discover] =
+    deriveDecoder[Discover]
+  implicit val fileTypeDecoder: Decoder[FileTypeConfig] =
+    deriveDecoder[FileTypeConfig]
+  implicit val nodeVerifiersDecoder: Decoder[NodeVerifiers] =
+    deriveDecoder[NodeVerifiers]
 
-import org.yaml.snakeyaml.constructor.Constructor
-import org.yaml.snakeyaml.Yaml
+  val config =
+    getClass.getClassLoader.getResourceAsStream("yaml/criteria-config.yaml")
+  val json = yaml.parser.parse(new InputStreamReader(config))
+  //  println(json)
+  val foo = json
+    .leftMap(err => err: Error)
+    .flatMap(_.as[FileTypeConfig])
+  println(foo)
 
-import com.prateek.xmlcompare.yaml.ComparingCriteriaYamlReader.{StringSet, StringToTMap}
+  case class NodeVerifiers(nodeRegex: String, verifiers: List[String])
 
+  case class Discover(
+      defaultInclude: List[String],
+      nodeRegex: List[NodeVerifiers]
+  )
+
+  case class FileTypeConfig(req: Discover)
+
+}
 
 /** Reads [[ComparingCriteria]] from a yaml file.
- */
+  */
+/*
 object ComparingCriteriaYamlReader {
 
   type JList = util.ArrayList[String]

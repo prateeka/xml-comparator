@@ -20,6 +20,6 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % logbackClassicVersion,
   "org.rogach" %% "scallop" % scallopVersion,
   "io.circe" %% "circe-yaml" % circeYamlVersion,
-  "org.scalatest" %% "scalatest-funspec" % scalaTestVersion % "test",
-  "org.yaml" % "snakeyaml" % snaymlVersion
+  "io.circe" %% "circe-generic" % circeYamlVersion,
+  "org.scalatest" %% "scalatest-funspec" % scalaTestVersion % "test"
 )

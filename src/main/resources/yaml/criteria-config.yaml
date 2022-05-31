@@ -1,18 +1,15 @@
-request:
-  exclude:
-    - n1
-    - n2
-    - n3
-  defaultInclude:
-    - cc1
-    - cc2
-    - cc3
-  nodeConfig:
-    n1:
+req:
+  Discover:
+    defaultInclude:
       - cc1
+      - cc2
       - cc3
-      - cc2
-    n1.n2:
-      - cc4
-      - cc5
-      - cc2
+    nodeRegex:
+      - n1.n2:
+          - cc1
+          - cc3
+          - cc2
+      - n3.n4:
+          - cc4
+          - cc5
+          - cc2
