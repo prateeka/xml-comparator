@@ -132,20 +132,23 @@ case class ChildVerifier(
           }
         }
 
-        /*
-         Returns the deepest Mismatch VerificationResult. If an expected child node cannot be compared with any actual node as all the
-         actual nodes have been traversed then create a new NodeNotFound(ctx.append(en).path) to be returned.
-         */
-        def maxDepthVerificationResult: VerificationResult = {
-          val result = lb.maxOption.getOrElse(NodeNotFound(ctx.append(en).path))
-          result
-        }
+        val value: Option[VerificationResult] = {
+          /*
+           Returns the deepest Mismatch VerificationResult. If an expected child node cannot be compared with any actual node as all the
+           actual nodes have been traversed then create a new NodeNotFound(ctx.append(en).path) to be returned.
+           */
+          def maxDepthVerificationResult: VerificationResult = {
+            val result =
+              lb.maxOption.getOrElse(NodeNotFound(ctx.append(en).path))
+            result
+          }
 
-        val value: Option[VerificationResult] = Option(
-          iact
-            .collectFirst({ case NodeCompare(m: Match.type) => m })
-            .getOrElse(maxDepthVerificationResult)
-        )
+          Option(
+            iact
+              .collectFirst({ case NodeCompare(m: Match.type) => m })
+              .getOrElse(maxDepthVerificationResult)
+          )
+        }
         value
       }
     }
