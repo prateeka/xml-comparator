@@ -16,10 +16,21 @@ object ComparingCriteriaYamlReader extends App {
 
   implicit val discoverResponseDecoder: Decoder[DiscoverResponse] =
     (c: HCursor) => {
+      Right(DiscoverResponse(NodeVerifier(c, "discoverResponse")))
+    }
+
+  val dr: DiscoverResponse = json.as[DiscoverResponse].get
+  println(s"$dr")
+
+  case class NodeVerifier(n: String, v: List[String])
+
+  case class DiscoverResponse(discoverResponse: List[NodeVerifier])
+
+  object NodeVerifier {
+    def apply(c: HCursor, label: String): List[NodeVerifier] = {
       import io.circe.Decoder.Result
-      println(c)
       val nodeVerifiersJson: Result[List[JsonObject]] =
-        c.downField("discoverResponse").as[List[JsonObject]]
+        c.downField(label).as[List[JsonObject]]
       val nodeJsonTuples: Seq[(String, Json)] =
         nodeVerifiersJson.get.flatMap(f => f.toMap)
       val nvs: List[NodeVerifier] = nodeJsonTuples
@@ -28,19 +39,9 @@ object ComparingCriteriaYamlReader extends App {
           NodeVerifier(k, verifiers)
         })
         .toList
-      //      Right(DiscoverResponse(List("nvs")))
-      //      val nvs = List(NodeVerifier("a", Nil), NodeVerifier("a", Nil))
-      Right(DiscoverResponse(nvs))
+      nvs
     }
-  val dr: DiscoverResponse = json.as[DiscoverResponse].get
-
-  case class NodeVerifier(n: String, v: List[String])
-
-  case class DiscoverResponse(discoverResponse: List[NodeVerifier])
-  //  case class DiscoverResponse(discoverResponse: List[String])
-
-  println(s"$dr")
-
+  }
   extension [A](e: Either[Error, A]) {
     def get: A = {
       e match
