@@ -8,30 +8,59 @@ import io.circe.*
 import io.circe.generic.semiauto.*
 
 object ComparingCriteriaYamlReader extends App {
-  implicit val discoverConfigDecoder: Decoder[Discover] =
-    deriveDecoder[Discover]
+  /*implicit val discoverConfigDecoder: Decoder[DiscoverConfig] =
+    deriveDecoder[DiscoverConfig]
   implicit val fileTypeDecoder: Decoder[FileTypeConfig] =
     deriveDecoder[FileTypeConfig]
+  implicit val defaultIncludeConfigDecoder: Decoder[DefaultIncludeConfig] =
+    deriveDecoder[DefaultIncludeConfig]
+   */
   implicit val nodeVerifiersDecoder: Decoder[NodeVerifiers] =
     deriveDecoder[NodeVerifiers]
+  implicit val nodeRegexConfigDecoder: Decoder[NodeRegexConfig] =
+    deriveDecoder[NodeRegexConfig]
+  implicit val stringDecoder: Decoder[String] = deriveDecoder[String]
 
   val config =
     getClass.getClassLoader.getResourceAsStream("yaml/criteria-config.yaml")
   val json = yaml.parser.parse(new InputStreamReader(config))
-  //  println(json)
-  val foo = json
+//  println(json)
+
+  val foo: Either[Error, NodeRegexConfig] = json
     .leftMap(err => err: Error)
-    .flatMap(_.as[FileTypeConfig])
-  println(foo)
+    .flatMap(_.as[NodeRegexConfig])
+//  println(foo)
+  foo match {
+    case Right(value) => {
+      value.nodeRegexMap.foreach(println)
+    }
+  }
+  case class NodeVerifiers(node: JsonObject)
+  case class NodeRegexConfig(nodeRegex: List[JsonObject]) {
 
-  case class NodeVerifiers(nodeRegex: String, verifiers: List[String])
+    import io.circe.Decoder.Result
 
-  case class Discover(
-      defaultInclude: List[String],
+    val nodeRegexMap: Iterable[Result[List[String]]] = {
+      val map1: Map[String, Json] = nodeRegex
+        .flatMap(f => f.toMap)
+        .toMap
+      val value: Seq[Json] = map1.values
+        .map(j => j.asArray)
+        .flatMap(_.get)
+        .toList
+      val value1: Iterable[Result[List[String]]] = value.map(_.as[List[String]])
+      value1.foreach(println)
+      value1
+    }
+  }
+  /*
+  case class DefaultIncludeConfig(defaultInclude: List[String])
+  case class DiscoverConfig(
+      discover: DefaultIncludeConfig,
       nodeRegex: List[NodeVerifiers]
   )
-
-  case class FileTypeConfig(req: Discover)
+  case class FileTypeConfig(req: DiscoverConfig)
+   */
 
 }
 

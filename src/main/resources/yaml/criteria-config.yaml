@@ -1,15 +1,9 @@
-req:
-  Discover:
-    defaultInclude:
+nodeRegex:
+  - n1.n2:
       - cc1
-      - cc2
       - cc3
-    nodeRegex:
-      - n1.n2:
-          - cc1
-          - cc3
-          - cc2
-      - n3.n4:
-          - cc4
-          - cc5
-          - cc2
+      - cc2
+  - n3.n4:
+      - cc4
+      - cc5
+      - cc2
