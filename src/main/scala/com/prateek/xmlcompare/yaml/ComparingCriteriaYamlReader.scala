@@ -14,26 +14,25 @@ object ComparingCriteriaYamlReader extends App {
   val json: Json = yaml.parser.parse(new InputStreamReader(config)).get
 
   println(s"json $json")
-  private val nrc: NodeRegexConfig = json.as[NodeRegexConfig].get
-  println(s"nrc: ${nrc.nodeRegexMap}")
+  private val nrc: NodeVerifiersConfig = json.as[NodeVerifiersConfig].get
+  println(s"nrc: ${nrc.nodeToVerifiersMap}")
 
-  case class NodeRegexConfig(nodeRegex: List[JsonObject]) {
-    val nodeRegexMap: Map[String, List[String]] = {
-      val nodeToRegex: Map[String, Json] = nodeRegex
+  case class NodeVerifiersConfig(nodeVerifiers: List[JsonObject]) {
+    val nodeToVerifiersMap: Map[String, List[String]] = {
+      val nodeJsonTuples: Seq[(String, Json)] = nodeVerifiers
         .flatMap(f => f.toMap)
-        .toMap
-      val regexIterator: Map[String, List[String]] =
-        nodeToRegex.map({ case (k, v) =>
+      val nodeToJsonMap: Map[String, Json] = nodeJsonTuples.toMap
+      nodeToJsonMap
+        .map({ case (k, v) =>
           val x = v.as[List[String]].get
           (k, x)
         })
-      regexIterator
     }
   }
 
-  object NodeRegexConfig {
-    implicit val nodeRegexConfigDecoder: Decoder[NodeRegexConfig] =
-      deriveDecoder[NodeRegexConfig]
+  object NodeVerifiersConfig {
+    implicit val nodeVerifiersConfigDecoder: Decoder[NodeVerifiersConfig] =
+      deriveDecoder[NodeVerifiersConfig]
   }
 
   extension [A](e: Either[Error, A]) {
