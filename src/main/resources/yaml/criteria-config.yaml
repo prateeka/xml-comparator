@@ -1,4 +1,4 @@
-nodeVerifiers:
+discoverResponse:
   - n1.n2:
       - cc1
       - cc3
