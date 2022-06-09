@@ -7,7 +7,7 @@ import java.io.File
 import org.rogach.scallop.fileConverter
 
 import com.prateek.xmlcompare.read.{FileListReader, XmlReader}
-import com.prateek.xmlcompare.verify.{RootNodeSource, Verifier}
+import com.prateek.xmlcompare.verify.*
 
 object Main extends App {
 
@@ -15,28 +15,33 @@ object Main extends App {
 
   @main
   def execute(args: String*): Unit = {
-    import com.prateek.xmlcompare.verify.LabelVerifier
+    import com.prateek.xmlcompare.read.FileListReader
     logger.debug(s"args: $args")
     val clp = CommandLineParser[File](args)
     //    TODO: add one more flag to indicate if the input refer to files or directories
     val (exp, act) = (clp.expected(), clp.actual())
     logger.info(s"expected: $exp actual: ${clp.actual}")
     val xmlReaderFunction = XmlReader(FileListReader.default)
-    val ef: Seq[RootNodeSource] = xmlReaderFunction(exp)
-    val af: Seq[RootNodeSource] = xmlReaderFunction(act)
+    val ef: Seq[InputFile] = xmlReaderFunction(exp)
+    val af: Seq[InputFile] = xmlReaderFunction(act)
 
-    Verifier(ef.filterSuccess, af.filterSuccess)
+    val efp = ef.partitionn
+    val afp = af.partitionn
+    Verifier(efp._1, afp._1)
   }
 
-  extension (s: Seq[RootNodeSource]) {
-    // Returns only [[RootNodeSource]] that encloses a successfully parsed file while the failed instances are logged and dropped
-    def filterSuccess: Seq[RootNodeSource] = {
-      s.filter({
-        case RootNodeSource(f, Failure(ex)) =>
-          logger.warn(s"file $f failed with: $ex")
-          false
-        case rns => true
+  extension (s: Seq[InputFile]) {
+
+    /** Partitions the input Seq[RootNodeContext] into valid and invalid [[Valid]]
+      *
+      * @return a tuple with tuple._1 containing valid files and tuple._2 containing invalid files
+      */
+    def partitionn: (Seq[Valid], Seq[Invalid]) = {
+      val t = s.partitionMap({
+        case r: Valid   => Left(r)
+        case r: Invalid => Right(r)
       })
+      t
     }
   }
 }

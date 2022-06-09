@@ -5,9 +5,11 @@ import scala.xml.*
 
 import java.io.{File, FileFilter}
 
-import com.prateek.xmlcompare.verify.RootNodeSource
+import com.prateek.xmlcompare.verify.{Invalid, Valid}
 
 object XmlReader {
+
+  import com.prateek.xmlcompare.verify.InputFile
 
   private val logger = com.typesafe.scalalogging.Logger(getClass)
 
@@ -16,24 +18,19 @@ object XmlReader {
     *
     * @param flr helps traverse the f:File
     * @param f   can be file or directory.
-    * @return [[Seq]] If f is a file then only a single [[RootNodeSource]] is returned else [[Seq[RootNodeSource]]]
+    * @return [[Seq]] If f is a file then only a single [[InputFile]] is returned else [[Seq[InputFile]]]
     */
-  def apply(flr: FileListReader)(f: File): Seq[RootNodeSource] = {
+  def apply(flr: FileListReader)(f: File): Seq[InputFile] = {
     val fs: Seq[File] = flr(f)
     fs.map(f1 => {
       val doc: Elem = XML.loadFile(f1)
       val trimmedNode: Node = Utility.trim(doc)
       trimmedNode match {
-        case DiscoverResponse(n) if n.size == 1 =>
+        case DiscoverResponse(n) =>
           logger.debug(s"matched DiscoverResponse is $n")
-          RootNodeSource(f, Try(n))
+          Valid(n, f1)
         case _ =>
-          RootNodeSource(
-            f,
-            Try {
-              throw XmlNodeParsingException("no match")
-            }
-          )
+          Invalid(f1)
       }
     })
   }
@@ -51,5 +48,3 @@ object XmlReader {
     }
   }
 }
-
-case class XmlNodeParsingException(msg: String) extends Exception(msg)

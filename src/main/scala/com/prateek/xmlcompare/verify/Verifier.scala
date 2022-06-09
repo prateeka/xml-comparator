@@ -8,15 +8,20 @@ import scala.xml.Utility.trim
 
 import java.io.File
 
+trait InputFile
+
 /** Stores the file and its corresponding xml node or a failure reading the file. If the file is valid then it is used for xml comparison.
-  * tns: xml node like DiscoverRequest, DiscoverResponse or other valid nodes. The file is valid if it contains one of these nodes else is invalid.
+  * The file is valid if it contains xml node like DiscoverRequest, DiscoverResponse else it is invalid.
   */
-case class RootNodeSource(file: File, tns: Try[Node])
+case class Valid(node: Node, file: File) extends InputFile
+
+case class Invalid(file: File) extends InputFile
 
 // Stores the parent xml node tags
 case class Context(en: List[String] = Nil) {
   lazy val path: String = en.mkString(",")
-//TODO: why need a list and can this not be replaced by a string?
+
+  // TODO: why need a list and can this not be replaced by a string?
   def append(n: Node): Context = {
     this.copy(en.:+(n.label))
   }
@@ -42,18 +47,18 @@ object Verifier {
     * @return VerificationResult describing if the two files match else for the best mismatch, the node where the mismatch occurred.
     */
   def apply(
-      ernss: Seq[RootNodeSource],
-      arnss: Seq[RootNodeSource],
+      ernss: Seq[Valid],
+      arnss: Seq[Valid],
       rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
   ): Seq[FileVerificationResult] = {
     case class FileVerificationResultTuple2(f: File, vr: VerificationResult)
 
     val value = ernss
-      .map({ case RootNodeSource(ef, Success(en)) =>
+      .map({ case Valid(en, ef) =>
         //        TODO: stop at the first exp & act match instead of going through all the act files
         // returns a result of an expFile match with all the actFiles
         val tuple2: Seq[FileVerificationResultTuple2] = arnss.map({
-          case RootNodeSource(af, Success(an)) =>
+          case Valid(an, af) =>
             val vr: VerificationResult =
               rootVerifier.apply(en, an)(using Context())
             FileVerificationResultTuple2(af, vr)

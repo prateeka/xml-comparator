@@ -7,18 +7,15 @@ import java.io.File
 
 import org.scalatest.funspec.AnyFunSpec
 
-import com.prateek.xmlcompare.read.{
-  FileListReader,
-  XmlNodeParsingException,
-  XmlReader
-}
-import com.prateek.xmlcompare.verify.RootNodeSource
+import com.prateek.xmlcompare.read.{FileListReader, XmlReader}
+import com.prateek.xmlcompare.stringToFile
+import com.prateek.xmlcompare.verify.{InputFile, Invalid}
 
 class XmlReaderSpec extends AnyFunSpec {
 
-  def nodeLabel(rns: Seq[RootNodeSource]): String = {
+  /*  def nodeLabel(rns: Seq[InputFile]): String = {
     object SingletonNode {
-      def unapply(ns: Try[NodeSeq]): Option[Node] = {
+      def unapply(ns: Node): Option[Node] = {
         ns match {
           case Success(n) if n.size == 1 => Option(n.head)
           case _                         => None
@@ -27,35 +24,40 @@ class XmlReaderSpec extends AnyFunSpec {
     }
 
     rns match {
-      case RootNodeSource(_, SingletonNode(n)) :: Nil   => n.label
-      case RootNodeSource(_, Failure(exception)) :: Nil => throw exception
-      case _ => throw new Exception("unhandled")
+      case Valid(SingletonNode(n), _) :: Nil => n.label
+      case _                                 => throw new Exception("unhandled")
     }
-  }
+  }*/
 
   it("non xml file input returns empty Seq") {
-    val node = nodeSeqReader(_ => Seq.empty, "empty.txt")
+    val node = inputFileReader(_ => Seq.empty, "empty.txt")
     assertResult(Seq.empty)(node)
   }
 
   it("throw exception for non matching xml") {
-    val node = nodeSeqReader(f => Seq(f), "invalidDiscoverResponse.xml")
-    assertThrows[XmlNodeParsingException](nodeLabel(node))
+    import scala.collection.immutable.{AbstractSeq, LinearSeq}
+
+    val node = inputFileReader(f => Seq(f), "invalidDiscoverResponse.xml")
+    assertResult(Seq(Invalid(toFile("invalidDiscoverResponse.xml"))))(node)
   }
 
+  /*
   it("read valid DISCOVER response") {
-    val node = nodeSeqReader(f => Seq(f), "validDiscoverResponse.xml")
+    val node = inputFileReader(f => Seq(f), "validDiscoverResponse.xml")
     assertResult("DiscoverResponse")(nodeLabel(node))
   }
+   */
 
-  private def nodeSeqReader(
+  private def inputFileReader(
       flr: FileListReader,
-      fn: String
-  ): Seq[RootNodeSource] = {
-    val f = {
-      val fileUrl = getClass.getResource(fn)
-      new File(fileUrl.toURI)
-    }
+      s: String
+  ): Seq[InputFile] = {
+    val f: File = toFile(s)
     XmlReader(flr)(f)
+  }
+
+  private def toFile(s: String) = {
+    val fileUrl = getClass.getResource(s)
+    new File(fileUrl.toURI)
   }
 }
