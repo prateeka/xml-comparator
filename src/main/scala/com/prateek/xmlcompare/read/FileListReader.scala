@@ -14,10 +14,11 @@ object FileListReader {
     val xmlFiles: Seq[File] = if (f.isDirectory) {
       val matchedFiles = f.listFiles(_.getName.isXmlType)
       matchedFiles.toList
-    } else if (f.getName.isXmlType)
+    } else if (f.getName.isXmlType) {
       Seq(f)
-    else
+    } else {
       Seq.empty
+    }
     xmlFiles
   }
 
