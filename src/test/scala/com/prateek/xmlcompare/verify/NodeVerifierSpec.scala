@@ -8,7 +8,7 @@ class NodeVerifierSpec extends AnyFunSpec {
 
   val mv: Verifier = new Verifier {
     override def apply(exp: Node, act: Node)(using
-        ctx: Context
+        ctx: VerificationContext
     ): VerificationResult = {
       Match
     }
@@ -16,13 +16,13 @@ class NodeVerifierSpec extends AnyFunSpec {
 
   val mmv: Verifier = new Verifier {
     override def apply(exp: Node, act: Node)(using
-        ctx: Context
+        ctx: VerificationContext
     ): VerificationResult = {
       NodeNotFound("Node1")
     }
   }
 
-  given ctx: Context = Context()
+  given ctx: VerificationContext = VerificationContext()
 
   it("test for matching nodes") {
     val exp: Node = <Node>"test for matching node</Node>

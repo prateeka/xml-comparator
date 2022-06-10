@@ -6,24 +6,26 @@ import java.io.File
 
 import org.rogach.scallop.fileConverter
 
-import com.prateek.xmlcompare.read.{FileListReader, XmlReader}
+import com.prateek.xmlcompare.read.{FileListReader, InputFileReader}
 import com.prateek.xmlcompare.verify.*
 
 object Main extends App {
+
+  import com.prateek.xmlcompare.read.{InputFile, Invalid, Valid}
 
   private val logger = com.typesafe.scalalogging.Logger(getClass)
 
   @main
   def execute(args: String*): Unit = {
-    import com.prateek.xmlcompare.read.FileListReader
+    import com.prateek.xmlcompare.read.{FileListReader, InputFile}
     logger.debug(s"args: $args")
     val clp = CommandLineParser[File](args)
     //    TODO: add one more flag to indicate if the input refer to files or directories
     val (exp, act) = (clp.expected(), clp.actual())
     logger.info(s"expected: $exp actual: ${clp.actual}")
-    val xmlReaderFunction = XmlReader(FileListReader.default)
-    val ef: Seq[InputFile] = xmlReaderFunction(exp)
-    val af: Seq[InputFile] = xmlReaderFunction(act)
+    val ipFileReaderFunction = InputFileReader(FileListReader.default)
+    val ef: Seq[InputFile] = ipFileReaderFunction(exp)
+    val af: Seq[InputFile] = ipFileReaderFunction(act)
 
     val efp = ef.partitionn
     val afp = af.partitionn

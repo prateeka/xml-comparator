@@ -5,11 +5,7 @@ import scala.xml.*
 
 import java.io.{File, FileFilter}
 
-import com.prateek.xmlcompare.verify.{Invalid, Valid}
-
-object XmlReader {
-
-  import com.prateek.xmlcompare.verify.InputFile
+object InputFileReader {
 
   private val logger = com.typesafe.scalalogging.Logger(getClass)
 
@@ -26,25 +22,12 @@ object XmlReader {
       val doc: Elem = XML.loadFile(f1)
       val trimmedNode: Node = Utility.trim(doc)
       trimmedNode match {
-        case DiscoverResponse(n) =>
+        case DiscoverResponse.Applied((n, m)) =>
           logger.debug(s"matched DiscoverResponse is $n")
-          Valid(n, f1)
+          Valid(n, f1, m)
         case _ =>
           Invalid(f1)
       }
     })
-  }
-
-  // top xml nodes to be compared
-  trait ComparisonNode
-
-  object DiscoverResponse extends ComparisonNode {
-    def unapply(node: Node): Option[Node] = {
-      val ns = node \\ "Body" \ "DiscoverResponse"
-      ns.toList match {
-        case h :: Nil => Some(h)
-        case _        => None
-      }
-    }
   }
 }

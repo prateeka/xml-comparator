@@ -8,68 +8,60 @@ import scala.xml.Utility.trim
 
 import java.io.File
 
-trait InputFile
-
-/** Stores the file and its corresponding xml node or a failure reading the file. If the file is valid then it is used for xml comparison.
-  * The file is valid if it contains xml node like DiscoverRequest, DiscoverResponse else it is invalid.
-  */
-case class Valid(node: Node, file: File) extends InputFile
-
-case class Invalid(file: File) extends InputFile
+import com.prateek.xmlcompare.read.Valid
 
 // Stores the parent xml node tags
-case class Context(en: List[String] = Nil) {
+case class VerificationContext(en: List[String] = Nil) {
   lazy val path: String = en.mkString(",")
 
   // TODO: why need a list and can this not be replaced by a string?
-  def append(n: Node): Context = {
+  def append(n: Node): VerificationContext = {
     this.copy(en.:+(n.label))
   }
 }
 
 trait Verifier {
   def apply(exp: Node, act: Node)(using
-      ctx: Context
+      ctx: VerificationContext
   ): VerificationResult
 }
 
 object Verifier {
 
-  /** Compares each actual file with all the expected files to identify the
-    * following:
+  /** Compares each actual file with all the expected files to identify the following:
     * 1. Lists all the expected files an actual file matches.
     * 2. If the actual file is not matching any expected file, then indicate the same
     * while listing the node where the mismatch occurred.
     *
-    * @param ernss        list of expected files
-    * @param arnss        list of actual files
-    * @param rootVerifier provides [[Verifier]] for the absolute node tag
+    * @param expValidFiles list of expected files
+    * @param actValidFiles list of actual files
+    * @param rootVerifier  provides [[Verifier]] for the absolute node tag
     * @return VerificationResult describing if the two files match else for the best mismatch, the node where the mismatch occurred.
     */
   def apply(
-      ernss: Seq[Valid],
-      arnss: Seq[Valid],
+      expValidFiles: Seq[Valid],
+      actValidFiles: Seq[Valid],
       rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
   ): Seq[FileVerificationResult] = {
-    case class FileVerificationResultTuple2(f: File, vr: VerificationResult)
+    case class ActualFileVerificationResult(f: File, vr: VerificationResult)
 
-    val value = ernss
-      .map({ case Valid(en, ef) =>
+    val fvrs: Seq[FileVerificationResult] = expValidFiles
+      .map({ case Valid(en, ef, msg) =>
         //        TODO: stop at the first exp & act match instead of going through all the act files
         // returns a result of an expFile match with all the actFiles
-        val tuple2: Seq[FileVerificationResultTuple2] = arnss.map({
-          case Valid(an, af) =>
+        val afvrs: Seq[ActualFileVerificationResult] = actValidFiles.map({
+          case Valid(an, af, msg) =>
             val vr: VerificationResult =
-              rootVerifier.apply(en, an)(using Context())
-            FileVerificationResultTuple2(af, vr)
+              rootVerifier.apply(en, an)(using VerificationContext())
+            ActualFileVerificationResult(af, vr)
         })
         // determine the best actFile match for an expFile
-        val fvr = tuple2.maxBy(_.vr) match
-          case FileVerificationResultTuple2(af, vr) =>
+        val bestResult = afvrs.maxBy(_.vr) match
+          case ActualFileVerificationResult(af, vr) =>
             FileVerificationResult(ef, af, vr)
-        fvr
+        bestResult
       })
-    value
+    fvrs
   }
 }
 
@@ -81,7 +73,7 @@ object Verifier {
 case class NodeVerifier(vp: VerificationProvider) extends Verifier {
 
   override def apply(exp: Node, act: Node)(using
-      ctx: Context
+      ctx: VerificationContext
   ): VerificationResult = {
     val nctx = ctx.append(exp)
     /*
@@ -106,7 +98,7 @@ case class ChildVerifier(
     rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
 ) extends Verifier {
   override def apply(exp: Node, act: Node)(using
-      ctx: Context
+      ctx: VerificationContext
   ): VerificationResult = {
     /*
      using an iterator helps us continue comparison of expected vs actual node from the point where the previous
@@ -175,7 +167,7 @@ case class ChildVerifier(
 
 case object LabelVerifier extends Verifier {
   override def apply(exp: Node, act: Node)(using
-      ctx: Context
+      ctx: VerificationContext
   ): VerificationResult =
     //    TODO: see if this can be made into a predicate method which is present in Verification and the predicate function is provided by the specializations
     if exp.label.equals(act.label) then Match

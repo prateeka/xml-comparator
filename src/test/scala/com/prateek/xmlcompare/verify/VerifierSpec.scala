@@ -7,12 +7,12 @@ import java.io.File
 
 import org.scalatest.funspec.AnyFunSpec
 
+import com.prateek.xmlcompare.read.{DiscoverResponse, Valid}
 import com.prateek.xmlcompare.stringToFile
-
 class VerifierSpec extends AnyFunSpec {
 
   given tuple2ToRootNodeSource: Conversion[(String, Node), Valid] = {
-    case (str, nd) => Valid(nd, str)
+    case (str, nd) => Valid(nd, str, DiscoverResponse)
   }
 
   it("file matches itself only") {

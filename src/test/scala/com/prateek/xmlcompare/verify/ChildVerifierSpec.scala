@@ -8,7 +8,7 @@ class ChildVerifierSpec extends AnyFunSpec {
 
   private val mv = new Verifier {
     override def apply(exp: Node, act: Node)(using
-        ctx: Context
+        ctx: VerificationContext
     ): VerificationResult = {
       if exp.equals(act) then Match
       else NodeNotFound(exp.label)
@@ -69,6 +69,6 @@ class ChildVerifierSpec extends AnyFunSpec {
   }
 
   private def run(en: Node, an: Node): VerificationResult = {
-    ChildVerifier(mv)(en, an)(using Context())
+    ChildVerifier(mv)(en, an)(using VerificationContext())
   }
 }
