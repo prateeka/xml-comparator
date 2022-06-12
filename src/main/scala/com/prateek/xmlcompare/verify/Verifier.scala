@@ -28,7 +28,7 @@ trait Verifier {
 
 object Verifier {
 
-  /** Compares each actual file with all the expected files to identify the following:
+  /** Compares each expected file with all the actual files to identify the following:
     * 1. Lists all the expected files an actual file matches.
     * 2. If the actual file is not matching any expected file, then indicate the same
     * while listing the node where the mismatch occurred.
@@ -41,8 +41,10 @@ object Verifier {
   def apply(
       expValidFiles: Seq[Valid],
       actValidFiles: Seq[Valid],
-      rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
+      verificationProvider: VerificationProvider = VerificationProvider.default
   ): Seq[FileVerificationResult] = {
+    val rootVerifier = NodeVerifier(verificationProvider)
+
     case class ActualFileVerificationResult(f: File, vr: VerificationResult)
 
     val fvrs: Seq[FileVerificationResult] = expValidFiles
@@ -76,8 +78,7 @@ case class NodeVerifier(vp: VerificationProvider) extends Verifier {
       ctx: VerificationContext
   ): VerificationResult = {
     val nctx = ctx.append(exp)
-    /*
-     Compare `expected` vs `actual` node until first Mismatch occurs. If no Mismatch instances are found then return a
+    /* Compare `expected` vs `actual` node until first Mismatch occurs. If no Mismatch instances are found then return a
      Match instance
      */
     val vs: Seq[Verifier] = vp(nctx.path)
