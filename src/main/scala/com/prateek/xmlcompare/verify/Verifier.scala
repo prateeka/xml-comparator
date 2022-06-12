@@ -41,9 +41,10 @@ object Verifier {
   def apply(
       expValidFiles: Seq[Valid],
       actValidFiles: Seq[Valid],
-      verificationProvider: VerificationProvider = VerificationProvider.default
+      verificationProvider: => VerificationProvider =
+        VerificationProvider.default
   ): Seq[FileVerificationResult] = {
-    val rootVerifier = NodeVerifier(verificationProvider)
+    val rv = rootVerifier(verificationProvider)
 
     case class ActualFileVerificationResult(f: File, vr: VerificationResult)
 
@@ -54,7 +55,7 @@ object Verifier {
         val afvrs: Seq[ActualFileVerificationResult] = actValidFiles.map({
           case Valid(an, af, msg) =>
             val vr: VerificationResult =
-              rootVerifier.apply(en, an)(using VerificationContext())
+              rv.apply(en, an)(using VerificationContext())
             ActualFileVerificationResult(af, vr)
         })
         // determine the best actFile match for an expFile
@@ -65,6 +66,8 @@ object Verifier {
       })
     fvrs
   }
+
+  def rootVerifier(vp: VerificationProvider) = NodeVerifier(vp)
 }
 
 /** Compares two nodes using a list of [[Verifiction]] provided by a [[VerificationProvider]]. It follow a fail fast
@@ -119,13 +122,13 @@ case class ChildVerifier(
        which indicates deepest successful node comparison.
        */
       def unapply(en: Node): Option[VerificationResult] = {
-        val lb = new ListBuffer[VerificationResult]
+        val vrs = new ListBuffer[VerificationResult]
 
         // Compare an expected child node with an actual child node
         object NodeCompare {
           def unapply(an: Node): Option[VerificationResult] = {
-            val vr = rootVerifier(en, an)
-            lb.append(vr)
+            val vr = rv(en, an)
+            vrs.append(vr)
             Option(vr)
           }
         }
@@ -135,17 +138,15 @@ case class ChildVerifier(
            Returns the deepest Mismatch VerificationResult. If an expected child node cannot be compared with any actual node as all the
            actual nodes have been traversed then create a new NodeNotFound(ctx.append(en).path) to be returned.
            */
-          def maxDepthVerificationResult: VerificationResult = {
+          def maxDepthVerificationResult: Option[VerificationResult] = {
             val result =
-              lb.maxOption.getOrElse(NodeNotFound(ctx.append(en).path))
+              vrs.maxOption.orElse(Option(NodeNotFound(ctx.append(en).path)))
             result
           }
 
-          Option(
-            iact
-              .collectFirst({ case NodeCompare(m: Match.type) => m })
-              .getOrElse(maxDepthVerificationResult)
-          )
+          iact
+            .collectFirst({ case NodeCompare(m: Match.type) => m })
+            .orElse(maxDepthVerificationResult)
         }
         value
       }
@@ -156,8 +157,8 @@ case class ChildVerifier(
      if no Mismatch instances are found then return Match instance implying all the expected child nodes found a matching actual child node.
      */
     val value = {
-      val cs = trim(exp).child
-      val csvr = cs
+      val ecs: Seq[Node] = trim(exp).child
+      val csvr = ecs
         .collectFirst { case ExpectedChildNodeVerification(vr: Mismatch) => vr }
         .getOrElse(Match)
       csvr

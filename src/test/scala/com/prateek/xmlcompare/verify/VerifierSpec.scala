@@ -27,7 +27,7 @@ class VerifierSpec extends AnyFunSpec {
         "only using Label verification at root level and ignoring the child nodes"
       ) {
         it(
-          "every expected file is matched correctly with a corresponding actual file"
+          "every expected file is correctly matched with a corresponding actual file"
         ) {
           val ev1: Valid = (
             "f1",
@@ -66,7 +66,7 @@ class VerifierSpec extends AnyFunSpec {
     {
       describe("using Label and Child verification") {
         it(
-          "every expected file is matched correctly with a corresponding actual file"
+          "every expected file is correctly matched with a corresponding actual file"
         ) {
           val ev1: Valid = (
             "f1",
@@ -99,6 +99,7 @@ class VerifierSpec extends AnyFunSpec {
           assert(vrs.contains(FileVerificationResult("f1", "f1", Match)))
           assert(vrs.contains(FileVerificationResult("f2", "f2", Match)))
           assert(vrs.sizeIs == 2)
+          */
         }
       }
     }
