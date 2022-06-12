@@ -30,35 +30,35 @@ class VerifierSpec extends AnyFunSpec {
           "every expected file is correctly matched with a corresponding actual file"
         ) {
           val ev1: Valid = (
-            "f1",
+            "e1",
             <n1>
-            <n2></n2>
-          </n1>
+              <n2></n2>
+            </n1>
           )
           val av1: Valid = (
-            "f1",
+            "a1",
             <n1>
-            <n11></n11>
-          </n1>
+              <n11></n11>
+            </n1>
           )
           val ev2: Valid = (
-            "f2",
+            "e2",
             <n2>
-            <n3></n3>
-          </n2>
+              <n3></n3>
+            </n2>
           )
           val av2: Valid = (
-            "f2",
+            "a2",
             <n2>
-            <n22></n22>
-          </n2>
+              <n22></n22>
+            </n2>
           )
           val evs: Seq[Valid] = Seq(ev1, ev2)
           val avs: Seq[Valid] = Seq(av1, av2)
           val vp: VerificationProvider = Seq(LabelVerifier)
-          val vrs = Verifier(evs, avs, vp)
-          assert(vrs.contains(FileVerificationResult("f1", "f1", Match)))
-          assert(vrs.contains(FileVerificationResult("f2", "f2", Match)))
+          val vrs = Verifier(evs, avs, NodeVerifier(vp))
+          assert(vrs.contains(FileVerificationResult("e1", "a1", Match)))
+          assert(vrs.contains(FileVerificationResult("e2", "a2", Match)))
           assert(vrs.sizeIs == 2)
         }
       }
@@ -66,47 +66,65 @@ class VerifierSpec extends AnyFunSpec {
     {
       describe("using Label and Child verification") {
         it(
-          "every expected file is correctly matched with a corresponding actual file"
+          "no expected file finds a match and the correct max match is reported"
         ) {
           val ev1: Valid = (
-            "f1",
+            "e1",
             <n1>
-            <n2></n2>
-          </n1>
+              <n2></n2>
+            </n1>
           )
           val av1: Valid = (
-            "f1",
+            "a1",
             <n1>
-            <n11></n11>
-          </n1>
+              <n11></n11>
+            </n1>
           )
           val ev2: Valid = (
-            "f2",
+            "e2",
             <n2>
-            <n3></n3>
-          </n2>
+              <n3></n3>
+            </n2>
           )
           val av2: Valid = (
-            "f2",
+            "a2",
             <n2>
-            <n22></n22>
-          </n2>
+              <n22></n22>
+            </n2>
           )
           val evs: Seq[Valid] = Seq(ev1, ev2)
           val avs: Seq[Valid] = Seq(av1, av2)
-          val vp: VerificationProvider = Seq(LabelVerifier)
-          val vrs = Verifier(evs, avs, vp)
-          assert(vrs.contains(FileVerificationResult("f1", "f1", Match)))
-          assert(vrs.contains(FileVerificationResult("f2", "f2", Match)))
+
+          lazy val mvp: VerificationProvider = new MockVerificationProvider(cv)
+          lazy val nv = NodeVerifier(mvp)
+          lazy val cv: ChildVerifier = ChildVerifier(nv)
+          val vrs = Verifier(evs, avs, nv)
+          println(vrs)
+
           assert(vrs.sizeIs == 2)
-          */
+          assert(
+            vrs.contains(
+              FileVerificationResult("e1", "a1", NodeNotFound("n1.n2"))
+            )
+          )
+          assert(
+            vrs.contains(
+              FileVerificationResult("e2", "a2", NodeNotFound("n2.n3"))
+            )
+          )
         }
       }
     }
   }
 
-  private def getVerificationProvider(
-      verifiers: Seq[Verifier]
-  ): VerificationProvider = (_: String) => verifiers
+  // this is needed to resolve the circular dependency between ChildVerifier and VerificationProvider
+  class MockVerificationProvider(cv1: => ChildVerifier)
+      extends VerificationProvider {
+    lazy val cv: ChildVerifier = cv1
+
+    override def apply(nt: String): Seq[Verifier] = {
+      Seq(LabelVerifier, cv)
+    }
+  }
 
 }

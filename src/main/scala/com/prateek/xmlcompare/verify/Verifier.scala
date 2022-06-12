@@ -12,7 +12,7 @@ import com.prateek.xmlcompare.read.Valid
 
 // Stores the parent xml node tags
 case class VerificationContext(en: List[String] = Nil) {
-  lazy val path: String = en.mkString(",")
+  lazy val path: String = en.mkString(".")
 
   // TODO: why need a list and can this not be replaced by a string?
   def append(n: Node): VerificationContext = {
@@ -41,21 +41,18 @@ object Verifier {
   def apply(
       expValidFiles: Seq[Valid],
       actValidFiles: Seq[Valid],
-      verificationProvider: => VerificationProvider =
-        VerificationProvider.default
+      rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
   ): Seq[FileVerificationResult] = {
-    val rv = rootVerifier(verificationProvider)
-
     case class ActualFileVerificationResult(f: File, vr: VerificationResult)
 
     val fvrs: Seq[FileVerificationResult] = expValidFiles
-      .map({ case Valid(en, ef, msg) =>
+      .map({ case Valid(en, ef, _) =>
         //        TODO: stop at the first exp & act match instead of going through all the act files
         // returns a result of an expFile match with all the actFiles
         val afvrs: Seq[ActualFileVerificationResult] = actValidFiles.map({
-          case Valid(an, af, msg) =>
+          case Valid(an, af, _) =>
             val vr: VerificationResult =
-              rv.apply(en, an)(using VerificationContext())
+              rootVerifier.apply(en, an)(using VerificationContext())
             ActualFileVerificationResult(af, vr)
         })
         // determine the best actFile match for an expFile
@@ -66,8 +63,6 @@ object Verifier {
       })
     fvrs
   }
-
-  def rootVerifier(vp: VerificationProvider) = NodeVerifier(vp)
 }
 
 /** Compares two nodes using a list of [[Verifiction]] provided by a [[VerificationProvider]]. It follow a fail fast
@@ -127,7 +122,7 @@ case class ChildVerifier(
         // Compare an expected child node with an actual child node
         object NodeCompare {
           def unapply(an: Node): Option[VerificationResult] = {
-            val vr = rv(en, an)
+            val vr = rootVerifier(en, an)
             vrs.append(vr)
             Option(vr)
           }
