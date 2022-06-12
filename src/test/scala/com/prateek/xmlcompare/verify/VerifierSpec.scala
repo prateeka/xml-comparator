@@ -62,8 +62,6 @@ class VerifierSpec extends AnyFunSpec {
           assert(vrs.sizeIs == 2)
         }
       }
-    }
-    {
       describe("using Label and Child verification") {
         it(
           "no expected file finds a match and the correct max match is reported"
