@@ -3,7 +3,7 @@ package com.prateek.xmlcompare.verify
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.{Success, Try}
-import scala.xml.{Node, NodeSeq}
+import scala.xml.{Node, NodeSeq, Text}
 import scala.xml.Utility.trim
 
 import java.io.File
@@ -179,11 +179,11 @@ case object LabelVerifier extends Verifier {
       ctx: VerificationContext
   ): VerificationResult =
     //    TODO: see if this can be made into a predicate method which is present in Verification and the predicate function is provided by the specializations
-    val result =
-      if exp.label.equals(act.label) then Match
-      else {
-        NodeTextNotFound(ctx.path)
-      }
+    val result = (exp, act) match {
+      case (e: Text, a: Text) if e.text.equals(a.text)   => Match
+      case (e: Node, a: Node) if e.label.equals(a.label) => Match
+      case _ => NodeTextNotFound(ctx.path)
+    }
     logger.info(
       s"comparing expected:${exp.label} & ${act.label} yields $result"
     )
