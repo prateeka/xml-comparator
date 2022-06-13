@@ -29,6 +29,7 @@ trait Verifier {
 }
 
 object Verifier {
+  private val logger = com.typesafe.scalalogging.Logger(getClass)
 
   /** Compares each expected file with all the actual files to identify the following:
     * 1. Lists all the expected files an actual file matches.
@@ -55,6 +56,7 @@ object Verifier {
           case Valid(an, af, _) =>
             val vr: VerificationResult =
               rootVerifier.apply(en, an)(using VerificationContext())
+            logger.debug(s"comparing file:$ef with $af yields $vr")
             ActualFileVerificationResult(af, vr)
         })
         // determine the best actFile match for an expFile
@@ -78,7 +80,7 @@ case class NodeVerifier(vp: VerificationProvider) extends Verifier {
   override def apply(exp: Node, act: Node)(using
       ctx: VerificationContext
   ): VerificationResult = {
-    logger.info(s"comparing expected:${exp.string}")
+    logger.debug(s"comparing expected:${exp.string}")
     val nctx = ctx.append(exp)
     /* Compare `expected` vs `actual` node until first Mismatch occurs. If no Mismatch instances are found then return a
      Match instance
@@ -161,7 +163,7 @@ case class ChildVerifier(
     val value = {
       //      val ecs: Seq[Node] = trim(exp).child
       val ecs: Seq[Node] = exp.child
-      if ecs.nonEmpty then logger.info(s"${exp.string} children: $ecs")
+      if ecs.nonEmpty then logger.debug(s"${exp.string} children: $ecs")
       val csvr = ecs
         .collectFirst { case ExpectedChildNodeVerification(vr: Mismatch) => vr }
         .getOrElse(Match)
@@ -202,7 +204,7 @@ case object LabelVerifier extends Verifier {
 private def log(es: Node, as: Node, vr: VerificationResult)(using
     logger: Logger
 ): Unit = {
-  logger.info(
+  logger.debug(
     s"comparing expected:${es.string} & ${as.string} yields $vr"
   )
 }
