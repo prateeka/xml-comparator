@@ -5,10 +5,12 @@ import scala.xml.{Node, NodeSeq}
 
 import java.io.File
 
+import org.scalactic.Prettifier.default
 import org.scalatest.funspec.AnyFunSpec
 
+import com.prateek.xmlcompare.{mapTrim, stringToFile}
 import com.prateek.xmlcompare.read.{DiscoverResponse, Valid}
-import com.prateek.xmlcompare.stringToFile
+
 class VerifierSpec extends AnyFunSpec {
 
   given tuple2ToValid: Conversion[(String, Node), Valid] = { case (str, nd) =>
@@ -65,35 +67,54 @@ class VerifierSpec extends AnyFunSpec {
           val ev1: Valid = (
             "e1",
             <n1>
-              <n2></n2>
+              <n2>node 2</n2>
+              <n3>
+                <n4>node 4</n4>
+                <n5>node 5</n5>
+              </n3>
             </n1>
           )
           val av1: Valid = (
             "a1",
             <n1>
-              <n11></n11>
+              <n2>node 2</n2>
+              <n3>
+                <n4>node 4</n4>
+                <n5>node 6</n5>
+              </n3>
             </n1>
           )
           val ev2: Valid = (
             "e2",
-            <n2>
-              <n3></n3>
-            </n2>
+            <n1>
+              <n2>node 2</n2>
+              <n3>
+                <n4>node 4</n4>
+                <n5>node 6</n5>
+              </n3>
+            </n1>
           )
           val av2: Valid = (
             "a2",
-            <n2>
-              <n22></n22>
-            </n2>
+            <n1>
+              <n2>node 2</n2>
+              <n3>
+                <n41>node 4</n41>
+                <n5>node 6</n5>
+              </n3>
+            </n1>
           )
-          val evs: Seq[Valid] = Seq(ev1, ev2)
-          val avs: Seq[Valid] = Seq(av1, av2)
+          val evs: Seq[Valid] = Seq(ev1, ev2).mapTrim
+          val avs: Seq[Valid] = Seq(av1, av2).mapTrim
 
-          lazy val mvp: VerificationProvider = new MockVerificationProvider(cv)
-          lazy val nv = NodeVerifier(mvp)
-          lazy val cv = ChildVerifier(nv)
-          val vrs = Verifier(evs, avs, nv)
-
+          val vrs = {
+            lazy val mvp: VerificationProvider =
+              new MockVerificationProvider(cv)
+            lazy val nv = NodeVerifier(mvp)
+            lazy val cv = ChildVerifier(nv)
+            Verifier(evs, avs, nv)
+          }
+          println(vrs)
           assert(vrs.sizeIs == 2)
           assert(
             vrs.contains(

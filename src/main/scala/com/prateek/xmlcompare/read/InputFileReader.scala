@@ -20,6 +20,7 @@ object InputFileReader {
     val fs: Seq[File] = flr(f)
     fs.map(f1 => {
       val doc: Elem = XML.loadFile(f1)
+      logger.info(s"xml loaded from $f1 is $doc")
       val trimmedNode: Node = Utility.trim(doc)
       trimmedNode match {
         case DiscoverResponse.Applied((n, m)) =>

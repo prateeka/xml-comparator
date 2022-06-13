@@ -71,10 +71,12 @@ object Verifier {
   * @param vp [[VerificationProvider]] provides a list of [[Verifier]] for every (nested) [[Node]]
   */
 case class NodeVerifier(vp: VerificationProvider) extends Verifier {
+  private val logger = com.typesafe.scalalogging.Logger(getClass)
 
   override def apply(exp: Node, act: Node)(using
       ctx: VerificationContext
   ): VerificationResult = {
+    logger.info(s"comparing expected:${exp.label}")
     val nctx = ctx.append(exp)
     /* Compare `expected` vs `actual` node until first Mismatch occurs. If no Mismatch instances are found then return a
      Match instance
@@ -96,6 +98,8 @@ case class NodeVerifier(vp: VerificationProvider) extends Verifier {
 case class ChildVerifier(
     rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
 ) extends Verifier {
+  private val logger = com.typesafe.scalalogging.Logger(getClass)
+
   override def apply(exp: Node, act: Node)(using
       ctx: VerificationContext
   ): VerificationResult = {
@@ -106,8 +110,11 @@ case class ChildVerifier(
      2. even though count(actual nodes) >= count(expected nodes) but they must match in order with the expected nodes.
      */
     val iact = {
+      act.child.iterator
+      /*
       val nact = trim(act)
       nact.child.iterator
+       */
     }
 
     object ExpectedChildNodeVerification {
@@ -118,6 +125,7 @@ case class ChildVerifier(
        */
       def unapply(en: Node): Option[VerificationResult] = {
         val vrs = new ListBuffer[VerificationResult]
+        logger.info(s"comparing expected:${en.label}")
 
         // Compare an expected child node with an actual child node
         object NodeCompare {
@@ -152,7 +160,9 @@ case class ChildVerifier(
      if no Mismatch instances are found then return Match instance implying all the expected child nodes found a matching actual child node.
      */
     val value = {
-      val ecs: Seq[Node] = trim(exp).child
+      //      val ecs: Seq[Node] = trim(exp).child
+      val ecs: Seq[Node] = exp.child
+      logger.info(s"${exp.label} children are $ecs")
       val csvr = ecs
         .collectFirst { case ExpectedChildNodeVerification(vr: Mismatch) => vr }
         .getOrElse(Match)
@@ -163,12 +173,19 @@ case class ChildVerifier(
 }
 
 case object LabelVerifier extends Verifier {
+  private val logger = com.typesafe.scalalogging.Logger(getClass)
+
   override def apply(exp: Node, act: Node)(using
       ctx: VerificationContext
   ): VerificationResult =
     //    TODO: see if this can be made into a predicate method which is present in Verification and the predicate function is provided by the specializations
-    if exp.label.equals(act.label) then Match
-    else {
-      NodeNotFound(ctx.path)
-    }
+    val result =
+      if exp.label.equals(act.label) then Match
+      else {
+        NodeTextNotFound(ctx.path)
+      }
+    logger.info(
+      s"comparing expected:${exp.label} & ${act.label} yields $result"
+    )
+    result
 }

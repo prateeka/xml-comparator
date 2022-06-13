@@ -15,7 +15,7 @@ class LabelVerifierSpec extends AnyFunSpec {
     val exp = <Node1>"test for non-matching node</Node1>
     val act = <Node2>"test for non-matching node</Node2>
     val ctx: VerificationContext = VerificationContext().append(exp)
-    assertResult(NodeNotFound("Node1"))(
+    assertResult(NodeTextNotFound("Node1"))(
       LabelVerifier(exp, act)(using ctx)
     )
   }
