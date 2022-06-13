@@ -8,15 +8,17 @@ import scala.xml.Utility.trim
 
 import java.io.File
 
-import com.prateek.xmlcompare.read.Valid
+import com.prateek.xmlcompare.read.{InputFile, Invalid, Valid}
+import com.typesafe.scalalogging
+import com.typesafe.scalalogging.Logger
 
 // Stores the parent xml node tags
-case class VerificationContext(en: List[String] = Nil) {
-  lazy val path: String = en.mkString(".")
+case class VerificationContext(ens: List[String] = Nil) {
+  lazy val path: String = ens.mkString(".")
 
   // TODO: why need a list and can this not be replaced by a string?
   def append(n: Node): VerificationContext = {
-    this.copy(en.:+(n.label))
+    this.copy(ens.:+(n.string))
   }
 }
 
@@ -76,7 +78,7 @@ case class NodeVerifier(vp: VerificationProvider) extends Verifier {
   override def apply(exp: Node, act: Node)(using
       ctx: VerificationContext
   ): VerificationResult = {
-    logger.info(s"comparing expected:${exp.label}")
+    logger.info(s"comparing expected:${exp.string}")
     val nctx = ctx.append(exp)
     /* Compare `expected` vs `actual` node until first Mismatch occurs. If no Mismatch instances are found then return a
      Match instance
@@ -98,8 +100,8 @@ case class NodeVerifier(vp: VerificationProvider) extends Verifier {
 case class ChildVerifier(
     rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
 ) extends Verifier {
-  private val logger = com.typesafe.scalalogging.Logger(getClass)
 
+  private val logger = scalalogging.Logger(getClass)
   override def apply(exp: Node, act: Node)(using
       ctx: VerificationContext
   ): VerificationResult = {
@@ -109,15 +111,10 @@ case class ChildVerifier(
      1. count(actual nodes) >= count(expected nodes).
      2. even though count(actual nodes) >= count(expected nodes) but they must match in order with the expected nodes.
      */
-    val iact = {
-      act.child.iterator
-      /*
-      val nact = trim(act)
-      nact.child.iterator
-       */
-    }
+    val iact = act.child.iterator
 
     object ExpectedChildNodeVerification {
+
       /*
        Compare an expected child node vs untraversed actual child nodes until first match occurs or all actual child nodes
        are are exhausted. If no Match ever occurs then return the Mismatch instance with the longest context length
@@ -125,12 +122,12 @@ case class ChildVerifier(
        */
       def unapply(en: Node): Option[VerificationResult] = {
         val vrs = new ListBuffer[VerificationResult]
-        logger.info(s"comparing expected:${en.label}")
 
         // Compare an expected child node with an actual child node
         object NodeCompare {
           def unapply(an: Node): Option[VerificationResult] = {
             val vr = rootVerifier(en, an)
+            log(en, an, vr)
             vrs.append(vr)
             Option(vr)
           }
@@ -153,6 +150,8 @@ case class ChildVerifier(
         }
         value
       }
+
+      private given logger: Logger = scalalogging.Logger(getClass)
     }
 
     /*
@@ -162,7 +161,7 @@ case class ChildVerifier(
     val value = {
       //      val ecs: Seq[Node] = trim(exp).child
       val ecs: Seq[Node] = exp.child
-      logger.info(s"${exp.label} children are $ecs")
+      if ecs.nonEmpty then logger.info(s"${exp.string} children: $ecs")
       val csvr = ecs
         .collectFirst { case ExpectedChildNodeVerification(vr: Mismatch) => vr }
         .getOrElse(Match)
@@ -173,19 +172,46 @@ case class ChildVerifier(
 }
 
 case object LabelVerifier extends Verifier {
-  private val logger = com.typesafe.scalalogging.Logger(getClass)
 
   override def apply(exp: Node, act: Node)(using
       ctx: VerificationContext
   ): VerificationResult =
-    //    TODO: see if this can be made into a predicate method which is present in Verification and the predicate function is provided by the specializations
     val result = (exp, act) match {
-      case (e: Text, a: Text) if e.text.equals(a.text)   => Match
-      case (e: Node, a: Node) if e.label.equals(a.label) => Match
-      case _ => NodeTextNotFound(ctx.path)
+      case (e: Text, a: Text) if e.text.equals(a.text) =>
+        val vr = Match
+        log(e, a, vr)
+        vr
+      case (e: Text, a: Text) =>
+        val vr = NodeTextNotFound(ctx.path)
+        log(e, a, vr)
+        vr
+      case (e: Node, a: Node) if e.label.equals(a.label) =>
+        val vr = Match
+        log(e, a, vr)
+        vr
+      case (e: Node, a: Node) =>
+        val vr = NodeTextNotFound(ctx.path)
+        log(e, a, vr)
+        vr
     }
-    logger.info(
-      s"comparing expected:${exp.label} & ${act.label} yields $result"
-    )
     result
+
+  private given logger: Logger = scalalogging.Logger(getClass)
+}
+
+private def log(es: Node, as: Node, vr: VerificationResult)(using
+    logger: Logger
+): Unit = {
+  logger.info(
+    s"comparing expected:${es.string} & ${as.string} yields $vr"
+  )
+}
+
+extension (n: Node) {
+  def string: String = {
+    n match {
+      case t: Text => t.text
+      case n: Node => n.label
+    }
+  }
 }
