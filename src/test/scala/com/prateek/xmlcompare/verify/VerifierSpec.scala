@@ -15,10 +15,6 @@ class VerifierSpec extends AnyFunSpec {
     Valid(nd, str, DiscoverResponse)
   }
 
-  given seqToVerificationProvider
-      : Conversion[Seq[Verifier], VerificationProvider] = vs =>
-    (_: String) => vs
-
   describe("a set of expected files and a set of actual files being compared") {
     describe(
       "only the root node of an expected file and its corresponding actual file match while the child nodes DO NOT match"
@@ -55,7 +51,7 @@ class VerifierSpec extends AnyFunSpec {
           )
           val evs: Seq[Valid] = Seq(ev1, ev2)
           val avs: Seq[Valid] = Seq(av1, av2)
-          val vp: VerificationProvider = Seq(LabelVerifier)
+          val vp: VerificationProvider = (_: String) => Seq(LabelVerifier)
           val vrs = Verifier(evs, avs, NodeVerifier(vp))
           assert(vrs.contains(FileVerificationResult("e1", "a1", Match)))
           assert(vrs.contains(FileVerificationResult("e2", "a2", Match)))
@@ -95,9 +91,8 @@ class VerifierSpec extends AnyFunSpec {
 
           lazy val mvp: VerificationProvider = new MockVerificationProvider(cv)
           lazy val nv = NodeVerifier(mvp)
-          lazy val cv: ChildVerifier = ChildVerifier(nv)
+          lazy val cv = ChildVerifier(nv)
           val vrs = Verifier(evs, avs, nv)
-          println(vrs)
 
           assert(vrs.sizeIs == 2)
           assert(
