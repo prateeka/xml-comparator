@@ -1,11 +1,6 @@
 package com.prateek.xmlcompare
 
-import org.rogach.scallop.{
-  fileConverter,
-  ScallopConf,
-  ScallopOption,
-  ValueConverter
-}
+import org.rogach.scallop.{fileConverter, ScallopConf, ScallopOption, ValueConverter}
 
 class CommandLineParser[T](arguments: Seq[String])(using ValueConverter[T])
     extends ScallopConf(arguments) {

@@ -4,6 +4,8 @@ import scala.xml.Node
 
 import org.scalatest.funspec.AnyFunSpec
 
+import com.prateek.xmlcompare.read.trim
+
 class ChildVerifierSpec extends AnyFunSpec {
 
   private val mv = new Verifier {
@@ -69,6 +71,6 @@ class ChildVerifierSpec extends AnyFunSpec {
   }
 
   private def run(en: Node, an: Node): VerificationResult = {
-    ChildVerifier(mv)(en, an)(using VerificationContext())
+    ChildVerifier(mv)(en.trim, an.trim)(using VerificationContext())
   }
 }

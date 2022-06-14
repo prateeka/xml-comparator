@@ -21,5 +21,6 @@ libraryDependencies ++= Seq(
   "org.rogach" %% "scallop" % scallopVersion,
   "io.circe" %% "circe-yaml" % circeYamlVersion,
   "io.circe" %% "circe-generic" % circeYamlVersion,
-  "org.scalatest" %% "scalatest-funspec" % scalaTestVersion % "test"
+  "org.scalatest" %% "scalatest" % scalaTestVersion % "test",
+  "org.scalactic" %% "scalactic" % scalaTestVersion % "test"
 )

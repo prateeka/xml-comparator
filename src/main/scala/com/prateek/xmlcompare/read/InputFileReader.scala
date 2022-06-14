@@ -5,6 +5,10 @@ import scala.xml.*
 
 import java.io.{File, FileFilter}
 
+extension (n: Node) {
+  def trim: Node = Utility.trim(n)
+}
+
 object InputFileReader {
 
   private val logger = com.typesafe.scalalogging.Logger(getClass)
@@ -19,9 +23,9 @@ object InputFileReader {
   def apply(flr: FileListReader)(f: File): Seq[InputFile] = {
     val fs: Seq[File] = flr(f)
     fs.map(f1 => {
-      val doc: Elem = XML.loadFile(f1)
+      val doc: Node = XML.loadFile(f1)
       logger.info(s"xml loaded from $f1 is $doc")
-      val trimmedNode: Node = Utility.trim(doc)
+      val trimmedNode: Node = doc.trim
       trimmedNode match {
         case DiscoverResponse.Applied((n, m)) =>
           logger.debug(s"matched DiscoverResponse is $n")

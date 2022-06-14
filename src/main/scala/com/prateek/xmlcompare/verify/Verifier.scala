@@ -17,15 +17,11 @@ case class VerificationContext(ens: List[String] = Nil) {
   lazy val path: String = ens.mkString(".")
 
   // TODO: why need a list and can this not be replaced by a string?
-  def append(n: Node): VerificationContext = {
-    this.copy(ens.:+(n.string))
-  }
+  def append(n: Node): VerificationContext = this.copy(ens.:+(n.string))
 }
 
 trait Verifier {
-  def apply(exp: Node, act: Node)(using
-      ctx: VerificationContext
-  ): VerificationResult
+  def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult
 }
 
 object Verifier {
@@ -50,20 +46,34 @@ object Verifier {
 
     val fvrs: Seq[FileVerificationResult] = expValidFiles
       .map({ case Valid(en, ef, _) =>
-        //        TODO: stop at the first exp & act match instead of going through all the act files
-        // returns a result of an expFile match with all the actFiles
-        val afvrs: Seq[ActualFileVerificationResult] = actValidFiles.map({
-          case Valid(an, af, _) =>
-            val vr: VerificationResult =
-              rootVerifier.apply(en, an)(using VerificationContext())
-            logger.debug(s"comparing file:$ef with $af yields $vr")
-            ActualFileVerificationResult(af, vr)
-        })
-        // determine the best actFile match for an expFile
-        val bestResult = afvrs.maxBy(_.vr) match
-          case ActualFileVerificationResult(af, vr) =>
-            FileVerificationResult(ef, af, vr)
-        bestResult
+        val vrs = new ListBuffer[ActualFileVerificationResult]()
+        object InputFileCompare {
+          def unapply(av: Valid): Option[ActualFileVerificationResult] = {
+            av match
+              case Valid(an, af, _) =>
+                val vr: VerificationResult = rootVerifier.apply(en, an)(using VerificationContext())
+                logger.debug(s"comparing file:$ef with $af yields $vr")
+                val afvr = ActualFileVerificationResult(af, vr)
+                vrs.append(afvr)
+                Option(afvr)
+          }
+        }
+
+        def maxFileVericationResult: FileVerificationResult = {
+          vrs
+            .maxByOption({ case ActualFileVerificationResult(_, vr) => vr })
+            .map({ case ActualFileVerificationResult(af, vr) =>
+              FileVerificationResult(ef, af, vr)
+            })
+            .get
+        }
+
+        val fvr = actValidFiles
+          .collectFirst({ case InputFileCompare(ActualFileVerificationResult(af, Match)) =>
+            FileVerificationResult(ef, af, Match)
+          })
+          .getOrElse(maxFileVericationResult)
+        fvr
       })
     fvrs
   }
@@ -77,9 +87,7 @@ object Verifier {
 case class NodeVerifier(vp: VerificationProvider) extends Verifier {
   private val logger = com.typesafe.scalalogging.Logger(getClass)
 
-  override def apply(exp: Node, act: Node)(using
-      ctx: VerificationContext
-  ): VerificationResult = {
+  override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
     logger.debug(s"comparing expected:${exp.string}")
     val nctx = ctx.append(exp)
     /* Compare `expected` vs `actual` node until first Mismatch occurs. If no Mismatch instances are found then return a
@@ -87,9 +95,7 @@ case class NodeVerifier(vp: VerificationProvider) extends Verifier {
      */
     val vs: Seq[Verifier] = vp(nctx.path)
     object Verification {
-      def unapply(v: Verifier): Option[VerificationResult] = Option(
-        v(exp, act)(using nctx)
-      )
+      def unapply(v: Verifier): Option[VerificationResult] = Option(v(exp, act)(using nctx))
     }
     val value = {
       vs.collectFirst { case Verification(mm: Mismatch) => mm }
@@ -99,14 +105,12 @@ case class NodeVerifier(vp: VerificationProvider) extends Verifier {
   }
 }
 
-case class ChildVerifier(
-    rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
-) extends Verifier {
+case class ChildVerifier(rootVerifier: Verifier = NodeVerifier(VerificationProvider.default))
+    extends Verifier {
 
   private val logger = scalalogging.Logger(getClass)
-  override def apply(exp: Node, act: Node)(using
-      ctx: VerificationContext
-  ): VerificationResult = {
+
+  override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
     /*
      using an iterator helps us continue comparison of expected vs actual node from the point where the previous
      actual node matched. This is in accordance with the assumption that a valid node match includes:
