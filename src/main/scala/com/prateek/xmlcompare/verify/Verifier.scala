@@ -42,7 +42,7 @@ object Verifier {
       actValidFiles: Seq[Valid],
       rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
   ): Seq[FileVerificationResult] = {
-    case class ActualFileVerificationResult(f: File, vr: VerificationResult)
+    type ActualFileVerificationResult = (File, VerificationResult)
 
     val fvrs: Seq[FileVerificationResult] = expValidFiles
       .map({ case Valid(en, ef, _) =>
@@ -53,20 +53,18 @@ object Verifier {
               case Valid(an, af, _) =>
                 val vr: VerificationResult = rootVerifier.apply(en, an)(using VerificationContext())
                 logger.debug(s"comparing file:$ef with $af yields $vr")
-                val afvr = ActualFileVerificationResult(af, vr)
+                val afvr = new ActualFileVerificationResult(af, vr)
                 vrs.append(afvr)
                 Option(afvr)
           }
         }
 
-        def maxFileVericationResult: FileVerificationResult = {
-          vrs
-            .maxByOption({ case ActualFileVerificationResult(_, vr) => vr })
-            .map({ case ActualFileVerificationResult(af, vr) =>
-              FileVerificationResult(ef, af, vr)
-            })
-            .get
-        }
+        def maxFileVericationResult: FileVerificationResult = vrs
+          .maxByOption({ case ActualFileVerificationResult(_, vr) => vr })
+          .map({ case ActualFileVerificationResult(af, vr) =>
+            FileVerificationResult(ef, af, vr)
+          })
+          .get
 
         val fvr = actValidFiles
           .collectFirst({ case InputFileCompare(ActualFileVerificationResult(af, Match)) =>
@@ -107,7 +105,6 @@ case class NodeVerifier(vp: VerificationProvider) extends Verifier {
 
 case class ChildVerifier(rootVerifier: Verifier = NodeVerifier(VerificationProvider.default))
     extends Verifier {
-
   private val logger = scalalogging.Logger(getClass)
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
@@ -165,7 +162,6 @@ case class ChildVerifier(rootVerifier: Verifier = NodeVerifier(VerificationProvi
      if no Mismatch instances are found then return Match instance implying all the expected child nodes found a matching actual child node.
      */
     val value = {
-      //      val ecs: Seq[Node] = trim(exp).child
       val ecs: Seq[Node] = exp.child
       if ecs.nonEmpty then logger.debug(s"${exp.string} children: $ecs")
       val csvr = ecs
@@ -178,11 +174,8 @@ case class ChildVerifier(rootVerifier: Verifier = NodeVerifier(VerificationProvi
 }
 
 case object LabelVerifier extends Verifier {
-
-  override def apply(exp: Node, act: Node)(using
-      ctx: VerificationContext
-  ): VerificationResult =
-    val result = (exp, act) match {
+  override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
+    val result = (exp, act) match
       case (e: Text, a: Text) if e.text.equals(a.text) =>
         val vr = Match
         log(e, a, vr)
@@ -199,15 +192,28 @@ case object LabelVerifier extends Verifier {
         val vr = NodeTextNotFound(ctx.path)
         log(e, a, vr)
         vr
-    }
     result
 
   private given logger: Logger = scalalogging.Logger(getClass)
 }
 
-private def log(es: Node, as: Node, vr: VerificationResult)(using
-    logger: Logger
-): Unit = {
+case object AttributeVerifier extends Verifier {
+
+  override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
+    val (expAttr: Set[(String, String)], actAttr: Set[(String, String)]) =
+      (exp.attributes.asAttrMap.toSet, act.attributes.asAttrMap.toSet)
+    val vr = expAttr
+      .find({ case (ek, ev) => !actAttr.contains(ek, ev) })
+      .map({ case (ek, ev) => AttributeMissing(s"${ctx.path}#$ek") })
+      .getOrElse(Match)
+    logger.debug(s"comparing attributes: $expAttr & $actAttr yields $vr")
+    vr
+  }
+
+  private given logger: Logger = scalalogging.Logger(getClass)
+}
+
+private def log(es: Node, as: Node, vr: VerificationResult)(using logger: Logger): Unit = {
   logger.debug(
     s"comparing expected:${es.string} & ${as.string} yields $vr"
   )

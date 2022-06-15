@@ -14,5 +14,6 @@
   </root>
   <logger name="com.prateek.xmlcompare.Main" level="debug"/>
   <logger name="com.prateek.xmlcompare.verify.Verifier" level="debug"/>
+  <logger name="com.prateek.xmlcompare.verify.ChildVerifier" level="debug"/>
 
 </configuration>
