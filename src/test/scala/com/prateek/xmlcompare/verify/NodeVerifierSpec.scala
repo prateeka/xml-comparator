@@ -27,16 +27,16 @@ class NodeVerifierSpec extends AnyFunSpec {
   it("test for matching nodes") {
     val exp: Node = <Node>"test for matching node</Node>
     val act: Node = <Node>"test for matching node</Node>
-    val vp: VerificationProvider = (ns: String) => Seq(mv)
-    val result = NodeVerifier(vp).apply(exp, act)
+//    val vp: VerificationProvider = (ns: String) => Seq(mv)
+    val result = NodeVerifier(Seq(mv)).apply(exp, act)
     assertResult(Match)(result)
   }
 
   it("test for non-matching nodes") {
     val exp = <Node1>"test for non-matching node</Node1>
     val act = <Node2>"test for non-matching node</Node2>
-    val vp: VerificationProvider = (ns: String) => Seq(mv, mmv)
-    val result = NodeVerifier(vp).apply(exp, act)
+//    val vp: VerificationProvider = (ns: String) => Seq(mv, mmv)
+    val result = NodeVerifier(Seq(mv, mmv)).apply(exp, act)
     assertResult(NodeNotFound("Node1"))(result)
   }
 }

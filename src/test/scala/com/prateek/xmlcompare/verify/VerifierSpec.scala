@@ -52,8 +52,8 @@ class VerifierSpec extends AnyFunSpec {
             )
             val evs: Seq[Valid] = Seq(ev1, ev2)
             val avs: Seq[Valid] = Seq(av1, av2)
-            val vp: VerificationProvider = (_: String) => Seq(LabelVerifier)
-            val vrs = Verifier(evs, avs, NodeVerifier(vp))
+//            val vp: VerificationProvider = (_: String) => Seq(LabelVerifier)
+            val vrs = Verifier(evs, avs, NodeVerifier(Seq(LabelVerifier)))
             vrs should contain theSameElementsInOrderAs Seq(
               FVR("e1", "a1", Match),
               FVR("e2", "a2", Match)
@@ -109,9 +109,10 @@ class VerifierSpec extends AnyFunSpec {
 
             val vrs = {
               // MockVerificationProvider adds LabelVerifier,AttributeVerifier by default
-              lazy val mvp: VerificationProvider = new MockVerificationProvider(cv)
-              lazy val nv = NodeVerifier(mvp)
-              lazy val cv = ChildVerifier(nv)
+//              lazy val mvp: VerificationProvider = new MockVerificationProvider(cv)
+              lazy val verifiers: Seq[Verifier] = Seq(LabelVerifier, AttributeVerifier, cv)
+              lazy val nv: NodeVerifier = NodeVerifier(verifiers)
+              lazy val cv: ChildVerifier = ChildVerifier(nv)
               Verifier(evs, avs, nv)
             }
 
@@ -119,7 +120,7 @@ class VerifierSpec extends AnyFunSpec {
               FVR(
                 "e1",
                 "a2",
-                NodeTextNotFound("n1.n3.n6.node 6")
+                NodeTextNotFound("n1.n3.n6.node 61")
               ),
               FVR("e2", "a1", Match)
             )
@@ -170,9 +171,14 @@ class VerifierSpec extends AnyFunSpec {
 
             val vs = {
               // MockVerificationProvider adds LabelVerifier,AttributeVerifier by default
+              /*
               lazy val mvp: VerificationProvider = new MockVerificationProvider(cv)
               lazy val nv = NodeVerifier(mvp)
               lazy val cv = ChildVerifier(nv)
+               */
+              lazy val verifiers: Seq[Verifier] = Seq(LabelVerifier, AttributeVerifier, cv)
+              lazy val nv: NodeVerifier = NodeVerifier(verifiers)
+              lazy val cv: ChildVerifier = ChildVerifier(nv)
               Verifier(evs, avs, nv)
             }
 
@@ -180,7 +186,7 @@ class VerifierSpec extends AnyFunSpec {
               FVR(
                 "e1",
                 "a2",
-                AttributeMissing("n1.n5#a55")
+                AttributeMissing("n1.n5.a55")
               ),
               FVR("e2", "a1", Match)
             )
@@ -195,11 +201,11 @@ class VerifierSpec extends AnyFunSpec {
   })
 
   // this is needed to resolve the circular dependency between ChildVerifier and VerificationProvider
-  class MockVerificationProvider(cv1: => ChildVerifier) extends VerificationProvider {
+  /*  class MockVerificationProvider(cv1: => ChildVerifier) extends VerificationProvider {
     //    type byNameVerifier = () => Verifier
     lazy val cv: ChildVerifier = cv1
 
     override def apply(nt: String): Seq[Verifier] = Seq(LabelVerifier, AttributeVerifier, cv)
-  }
+  }*/
 
 }

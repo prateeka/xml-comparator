@@ -9,6 +9,7 @@ import scala.xml.Utility.trim
 import java.io.File
 
 import com.prateek.xmlcompare.read.{InputFile, Invalid, Valid}
+import com.prateek.xmlcompare.yaml.ComparingCriteriaYamlReader.NodeConfig
 import com.typesafe.scalalogging
 import com.typesafe.scalalogging.Logger
 
@@ -17,7 +18,8 @@ case class VerificationContext(ens: List[String] = Nil) {
   lazy val path: String = ens.mkString(".")
 
   // TODO: why need a list and can this not be replaced by a string?
-  def append(n: Node): VerificationContext = this.copy(ens.:+(n.string))
+  //  def append(n: Node): VerificationContext = this.copy(ens.:+(n.string))
+  def append(str: String): VerificationContext = this.copy(ens.:+(str))
 }
 
 trait Verifier {
@@ -25,7 +27,10 @@ trait Verifier {
 }
 
 object Verifier {
-  private val logger = com.typesafe.scalalogging.Logger(getClass)
+  val verifiers: Seq[Verifier] = Seq(LabelVerifier, AttributeVerifier, cv)
+  private val nv: NodeVerifier = NodeVerifier(verifiers)
+  private val cv: ChildVerifier = ChildVerifier(nv)
+  private val logger = scalalogging.Logger(getClass)
 
   /** Compares each expected file with all the actual files to identify the following:
     * 1. Lists all the expected files an actual file matches.
@@ -40,7 +45,7 @@ object Verifier {
   def apply(
       expValidFiles: Seq[Valid],
       actValidFiles: Seq[Valid],
-      rootVerifier: Verifier = NodeVerifier(VerificationProvider.default)
+      rootVerifier: Verifier = NodeVerifier(verifiers)
   ): Seq[FileVerificationResult] = {
     type ActualFileVerificationResult = (File, VerificationResult)
 
@@ -82,18 +87,20 @@ object Verifier {
   *
   * @param vp [[VerificationProvider]] provides a list of [[Verifier]] for every (nested) [[Node]]
   */
-case class NodeVerifier(vp: VerificationProvider) extends Verifier {
-  private val logger = com.typesafe.scalalogging.Logger(getClass)
+//case class NodeVerifier(vp: VerificationProvider) extends Verifier {
+class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
+
+  private val logger = scalalogging.Logger(getClass)
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
     logger.debug(s"comparing expected:${exp.string}")
-    val nctx = ctx.append(exp)
+//    val nctx = ctx.append(exp)
     /* Compare `expected` vs `actual` node until first Mismatch occurs. If no Mismatch instances are found then return a
      Match instance
      */
-    val vs: Seq[Verifier] = vp(nctx.path)
+//    val vs: Seq[Verifier] = vp(nctx.path)
     object Verification {
-      def unapply(v: Verifier): Option[VerificationResult] = Option(v(exp, act)(using nctx))
+      def unapply(v: Verifier): Option[VerificationResult] = Option(v(exp, act)(using ctx))
     }
     val value = {
       vs.collectFirst { case Verification(mm: Mismatch) => mm }
@@ -103,8 +110,7 @@ case class NodeVerifier(vp: VerificationProvider) extends Verifier {
   }
 }
 
-case class ChildVerifier(rootVerifier: Verifier = NodeVerifier(VerificationProvider.default))
-    extends Verifier {
+class ChildVerifier(rootVerifier: => Verifier) extends Verifier {
   private val logger = scalalogging.Logger(getClass)
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
@@ -115,9 +121,9 @@ case class ChildVerifier(rootVerifier: Verifier = NodeVerifier(VerificationProvi
      2. even though count(actual nodes) >= count(expected nodes) but they must match in order with the expected nodes.
      */
     val iact = act.child.iterator
+    val nctx = ctx.append(exp.label)
 
     object ExpectedChildNodeVerification {
-
       /*
        Compare an expected child node vs untraversed actual child nodes until first match occurs or all actual child nodes
        are are exhausted. If no Match ever occurs then return the Mismatch instance with the longest context length
@@ -129,7 +135,7 @@ case class ChildVerifier(rootVerifier: Verifier = NodeVerifier(VerificationProvi
         // Compare an expected child node with an actual child node
         object NodeCompare {
           def unapply(an: Node): Option[VerificationResult] = {
-            val vr = rootVerifier(en, an)
+            val vr = rootVerifier(en, an)(using nctx)
             log(en, an, vr)
             vrs.append(vr)
             Option(vr)
@@ -142,8 +148,7 @@ case class ChildVerifier(rootVerifier: Verifier = NodeVerifier(VerificationProvi
            actual nodes have been traversed then create a new NodeNotFound(ctx.append(en).path) to be returned.
            */
           def maxDepthVerificationResult: Option[VerificationResult] = {
-            val result =
-              vrs.maxOption.orElse(Option(NodeNotFound(ctx.append(en).path)))
+            val result = vrs.maxOption.orElse(Option(NodeNotFound(s"${nctx.path}.${en.label}")))
             result
           }
 
@@ -181,7 +186,7 @@ case object LabelVerifier extends Verifier {
         log(e, a, vr)
         vr
       case (e: Text, a: Text) =>
-        val vr = NodeTextNotFound(ctx.path)
+        val vr = NodeTextNotFound(s"${ctx.append(e.text).path}")
         log(e, a, vr)
         vr
       case (e: Node, a: Node) if e.label.equals(a.label) =>
@@ -189,7 +194,7 @@ case object LabelVerifier extends Verifier {
         log(e, a, vr)
         vr
       case (e: Node, a: Node) =>
-        val vr = NodeTextNotFound(ctx.path)
+        val vr = NodeTextNotFound(s"${ctx.append(e.label).path}")
         log(e, a, vr)
         vr
     result
@@ -204,7 +209,7 @@ case object AttributeVerifier extends Verifier {
       (exp.attributes.asAttrMap.toSet, act.attributes.asAttrMap.toSet)
     val vr = expAttr
       .find({ case (ek, ev) => !actAttr.contains(ek, ev) })
-      .map({ case (ek, ev) => AttributeMissing(s"${ctx.path}#$ek") })
+      .map({ case (ek, _) => AttributeMissing(s"${ctx.append(exp.label).append(ek).path}") })
       .getOrElse(Match)
     logger.debug(s"comparing attributes: $expAttr & $actAttr yields $vr")
     vr

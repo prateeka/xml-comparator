@@ -12,26 +12,30 @@ class ChildVerifierSpec extends AnyFunSpec {
     override def apply(exp: Node, act: Node)(using
         ctx: VerificationContext
     ): VerificationResult = {
-      if exp.equals(act) then Match
-      else NodeNotFound(exp.label)
+      val vr =
+        if exp.equals(act) then Match
+        else NodeNotFound(exp.label)
+      vr
     }
   }
 
   describe("when all the expected nodes match subset of actual nodes") {
     it("should return Match") {
-      val en = <Node>
-        <Node1/>
-        <Node2/>
-        <Node5/>
-      </Node>
-      val an = <Node>
-        <Node0/>
-        <Node1/>
-        <Node2/>
-        <Node3/>
-        <Node4/>
-        <Node5/>
-      </Node>
+      val en =
+        <Node>
+          <Node1/>
+          <Node2/>
+          <Node5/>
+        </Node>
+      val an =
+        <Node>
+          <Node0/>
+          <Node1/>
+          <Node2/>
+          <Node3/>
+          <Node4/>
+          <Node5/>
+        </Node>
       val result = run(en, an)
       assertResult(Match)(result)
     }
@@ -39,16 +43,18 @@ class ChildVerifierSpec extends AnyFunSpec {
 
   describe("when the first expected node is missing") {
     it("should return NodeNotFound with the missing first node label") {
-      val en = <Node>
-        <Node1/>
-        <Node2/>
-        <Node5/>
-      </Node>
-      val an = <Node>
-        <Node0/>
-        <Node2/>
-        <Node5/>
-      </Node>
+      val en =
+        <Node>
+          <Node1/>
+          <Node2/>
+          <Node5/>
+        </Node>
+      val an =
+        <Node>
+          <Node0/>
+          <Node2/>
+          <Node5/>
+        </Node>
       val result = run(en, an)
       assertResult(NodeNotFound("Node1"))(result)
     }
@@ -56,17 +62,19 @@ class ChildVerifierSpec extends AnyFunSpec {
 
   describe("when the last expected node is missing") {
     it("should return NodeNotFound with the missing last node label") {
-      val en = <Node>
-        <Node1/>
-        <Node2/>
-        <Node5/>
-      </Node>
-      val an = <Node>
-        <Node1/>
-        <Node2/>
-      </Node>
+      val en =
+        <Node>
+          <Node1/>
+          <Node2/>
+          <Node5/>
+        </Node>
+      val an =
+        <Node>
+          <Node1/>
+          <Node2/>
+        </Node>
       val result = run(en, an)
-      assertResult(NodeNotFound("Node5"))(result)
+      assertResult(NodeNotFound("Node.Node5"))(result)
     }
   }
 
