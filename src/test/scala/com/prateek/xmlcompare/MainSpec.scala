@@ -1,8 +1,6 @@
 package com.prateek.xmlcompare
 import org.scalatest.funspec.AnyFunSpec
 
-import com.prateek.xmlcompare.compare.{FileNotFound, NodeNotFound, Subset}
-
 class MainSpec extends AnyFunSpec {
   describe("Comparator behavior") {
     describe(
