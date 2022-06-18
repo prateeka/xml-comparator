@@ -182,11 +182,11 @@ class ChildVerifier(rootVerifier: => Verifier) extends Verifier {
 case object LabelTextVerifier extends Verifier {
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
     val result = (exp, act) match
-      case (e: Text, a: Text) if e.text.equals(a.text)   =>
+      case (e: Text, a: Text) if e.text.equals(a.text) =>
         val vr = Match
         log(e, a, vr)
         vr
-      case (e: Text, a: Text)                            =>
+      case (e: Text, a: Text) =>
         val vr = NodeTextNotFound(s"${ctx.append(e.text).path}")
         log(e, a, vr)
         vr
@@ -204,7 +204,6 @@ case object LabelTextVerifier extends Verifier {
 }
 
 case object AttributeVerifier extends Verifier {
-
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
     val (expAttr: Set[(String, String)], actAttr: Set[(String, String)]) =
       (exp.attributes.asAttrMap.toSet, act.attributes.asAttrMap.toSet)
