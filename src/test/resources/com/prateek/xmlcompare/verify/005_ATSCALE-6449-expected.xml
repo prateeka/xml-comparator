@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <ExecuteResponse xmlns="urn:schemas-microsoft-com:xml-analysis">
+      <return>
+        <root xmlns="urn:schemas-microsoft-com:xml-analysis:rowset">
+          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+                      targetNamespace="urn:schemas-microsoft-com:xml-analysis:rowset">
+            <xsd:element name="root">
+              <xsd:complexType>
+                <xsd:sequence maxOccurs="unbounded" minOccurs="0">
+                  <xsd:element name="row" type="row"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:simpleType name="uuid">
+              <xsd:restriction base="xsd:string">
+                <xsd:pattern value="[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}"/>
+              </xsd:restriction>
+            </xsd:simpleType>
+            <xsd:complexType name="xmlDocument">
+              <xsd:sequence>
+                <xsd:any/>
+              </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="row">
+              <xsd:sequence>
+                <xsd:element xmlns:sql="urn:schemas-microsoft-com:xml-sql" minOccurs="0"
+                             name="_x005b_Test___Calc_x005d_" sql:field="[Test___Calc]"/>
+              </xsd:sequence>
+            </xsd:complexType>
+          </xsd:schema>
+          <row>
+            <_x005b_Test___Calc_x005d_ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xsd:decimal">
+              1.2212
+            </_x005b_Test___Calc_x005d_>
+          </row>
+        </root>
+      </return>
+    </ExecuteResponse>
+  </soap:Body>
+</soap:Envelope>
