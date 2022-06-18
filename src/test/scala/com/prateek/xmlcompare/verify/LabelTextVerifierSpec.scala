@@ -2,13 +2,13 @@ package com.prateek.xmlcompare.verify
 
 import org.scalatest.funspec.AnyFunSpec
 
-class LabelVerifierSpec extends AnyFunSpec {
+class LabelTextVerifierSpec extends AnyFunSpec {
 
   it("test for matching nodes") {
     val exp = <Node>"test for matching node</Node>
     val act = <Node>"test for matching node</Node>
     val ctx: VerificationContext = VerificationContext().append(exp.label)
-    assertResult(Match)(LabelVerifier(exp, act)(using ctx))
+    assertResult(Match)(LabelTextVerifier(exp, act)(using ctx))
   }
 
   it("test for non-matching nodes") {
@@ -16,7 +16,7 @@ class LabelVerifierSpec extends AnyFunSpec {
     val act = <Node2>"test for non-matching node</Node2>
     val ctx: VerificationContext = VerificationContext()
     assertResult(NodeTextNotFound("Node1"))(
-      LabelVerifier(exp, act)(using ctx)
+      LabelTextVerifier(exp, act)(using ctx)
     )
   }
 }
