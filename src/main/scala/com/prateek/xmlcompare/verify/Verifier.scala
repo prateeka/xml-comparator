@@ -9,17 +9,19 @@ import scala.xml.Utility.trim
 import java.io.File
 
 import com.prateek.xmlcompare.read.{InputFile, Invalid, Valid}
+import com.prateek.xmlcompare.verify.XPathFactory.{appendAttributeKey, XPath}
 import com.prateek.xmlcompare.yaml.ComparingCriteriaYamlReader.NodeConfig
 import com.typesafe.scalalogging
 import com.typesafe.scalalogging.Logger
 
 // Stores the parent xml node tags
-case class VerificationContext(ens: List[String] = Nil) {
-  lazy val path: String = ens.mkString(".")
+case class VerificationContext(ens: List[Node] = Nil) {
+
+  lazy val xpath: XPath = XPathFactory(ens)
 
   // TODO: why need a list and can this not be replaced by a string?
   //  def append(n: Node): VerificationContext = this.copy(ens.:+(n.string))
-  def append(str: String): VerificationContext = this.copy(ens.:+(str))
+  def append(n: Node): VerificationContext = this.copy(ens.:+(n))
 }
 
 trait Verifier {
@@ -121,7 +123,7 @@ class ChildVerifier(rootVerifier: => Verifier) extends Verifier {
      2. even though count(actual nodes) >= count(expected nodes) but they must match in order with the expected nodes.
      */
     val iact = act.child.iterator
-    val nctx = ctx.append(exp.label)
+    val nctx = ctx.append(exp)
 
     object ExpectedChildNodeVerification {
       /*
@@ -148,7 +150,8 @@ class ChildVerifier(rootVerifier: => Verifier) extends Verifier {
            actual nodes have been traversed then create a new NodeNotFound(ctx.append(en).path) to be returned.
            */
           def maxDepthVerificationResult: Option[VerificationResult] = {
-            val result = vrs.maxOption.orElse(Option(NodeNotFound(s"${nctx.path}.${en.label}")))
+            val maybeFound = Option(NodeNotFound(s"${nctx.append(en).xpath}"))
+            val result = vrs.maxOption.orElse(maybeFound)
             result
           }
 
@@ -187,7 +190,7 @@ case object LabelTextVerifier extends Verifier {
         log(e, a, vr)
         vr
       case (e: Text, a: Text) =>
-        val vr = NodeTextNotFound(s"${ctx.append(e.text).path}")
+        val vr = NodeTextNotFound(s"${ctx.xpath}")
         log(e, a, vr)
         vr
       case (e: Node, a: Node) if e.label.equals(a.label) =>
@@ -195,7 +198,7 @@ case object LabelTextVerifier extends Verifier {
         log(e, a, vr)
         vr
       case (e: Node, a: Node) =>
-        val vr = NodeTextNotFound(s"${ctx.append(e.label).path}")
+        val vr = NodeNotFound(s"${ctx.append(e).xpath}")
         log(e, a, vr)
         vr
     result
@@ -207,9 +210,12 @@ case object AttributeVerifier extends Verifier {
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
     val (expAttr: Set[(String, String)], actAttr: Set[(String, String)]) =
       (exp.attributes.asAttrMap.toSet, act.attributes.asAttrMap.toSet)
+    //      TODO: currently reports the first attributeKey missing. update the Verifier.apply to return Seq[VerificationResult]
     val vr = expAttr
       .find({ case (ek, ev) => !actAttr.contains(ek, ev) })
-      .map({ case (ek, _) => AttributeMissing(s"${ctx.append(exp.label).append(ek).path}") })
+      .map({ case (ek, _) =>
+        AttributeMissing(s"${ctx.append(exp).xpath.appendAttributeKey(ek)}")
+      })
       .getOrElse(Match)
     logger.debug(s"comparing attributes: $expAttr & $actAttr yields $vr")
     vr

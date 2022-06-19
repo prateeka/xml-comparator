@@ -7,7 +7,7 @@ class LabelTextVerifierSpec extends AnyFunSpec {
   it("test for matching nodes") {
     val exp = <Node>"test for matching node</Node>
     val act = <Node>"test for matching node</Node>
-    val ctx: VerificationContext = VerificationContext().append(exp.label)
+    val ctx: VerificationContext = VerificationContext().append(exp)
     assertResult(Match)(LabelTextVerifier(exp, act)(using ctx))
   }
 
