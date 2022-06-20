@@ -74,7 +74,7 @@ class ChildVerifierSpec extends AnyFunSpec {
           <Node2/>
         </Node>
       val result = run(en, an)
-      assertResult(NodeNotFound("Node.Node5"))(result)
+      assertResult(NodeNotFound("Node\\Node5"))(result)
     }
   }
 
