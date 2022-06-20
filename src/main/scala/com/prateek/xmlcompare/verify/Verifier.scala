@@ -9,7 +9,7 @@ import scala.xml.Utility.trim
 import java.io.File
 
 import com.prateek.xmlcompare.read.{InputFile, Invalid, Valid}
-import com.prateek.xmlcompare.verify.XPathFactory.{appendAttributeKey, XPath}
+import com.prateek.xmlcompare.verify.XPathFactory.{appendAttributeKey, appendText, XPath}
 import com.prateek.xmlcompare.yaml.ComparingCriteriaYamlReader.NodeConfig
 import com.typesafe.scalalogging
 import com.typesafe.scalalogging.Logger
@@ -190,7 +190,7 @@ case object LabelTextVerifier extends Verifier {
         log(e, a, vr)
         vr
       case (e: Text, a: Text) =>
-        val vr = NodeTextNotFound(s"${ctx.xpath}")
+        val vr = NodeTextNotFound(s"${ctx.xpath.appendText()}")
         log(e, a, vr)
         vr
       case (e: Node, a: Node) if e.label.equals(a.label) =>

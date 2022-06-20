@@ -11,4 +11,5 @@ case object XPathFactory {
 
   extension (xPath: XPath)
     def appendAttributeKey(attributeKey: String): XPath = s"$xPath\\@$attributeKey"
+    def appendText(): XPath = s"$xPath\\%TEXT"
 }

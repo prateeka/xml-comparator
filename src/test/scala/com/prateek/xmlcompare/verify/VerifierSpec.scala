@@ -120,7 +120,7 @@ class VerifierSpec extends AnyFunSpec {
               FVR(
                 "e1",
                 "a2",
-                NodeTextNotFound("n1.n3.n6.node 61")
+                NodeTextNotFound("n1\n3\n6")
               ),
               FVR("e2", "a1", Match)
             )
