@@ -9,15 +9,12 @@ import io.circe.generic.semiauto.*
 
 object ComparingCriteriaYamlReader extends App {
 
-  val config =
-    getClass.getClassLoader.getResourceAsStream("yaml/criteria-config.yaml")
+  val config = getClass.getClassLoader.getResourceAsStream("yaml/criteria-config.yaml")
   val json: Json = yaml.parser.parse(new InputStreamReader(config)).get
   println(s"json $json")
 
-  implicit val discoverResponseDecoder: Decoder[DiscoverResponse] =
-    (c: HCursor) => {
-      Right(DiscoverResponse(NodeConfig(c, "discoverResponse")))
-    }
+  implicit val discoverResponseDecoder: Decoder[DiscoverResponse] = (c: HCursor) =>
+    Right(DiscoverResponse(NodeConfig(c, "discoverResponse")))
 
   val dr: DiscoverResponse = json.as[DiscoverResponse].get
   println(s"$dr")
@@ -29,10 +26,8 @@ object ComparingCriteriaYamlReader extends App {
   object NodeConfig {
     def apply(c: HCursor, label: String): List[NodeConfig] = {
       import io.circe.Decoder.Result
-      val nodeVerifiersJson: Result[List[JsonObject]] =
-        c.downField(label).as[List[JsonObject]]
-      val nodeJsonTuples: Seq[(String, Json)] =
-        nodeVerifiersJson.get.flatMap(f => f.toMap)
+      val nodeVerifiersJson: Result[List[JsonObject]] = c.downField(label).as[List[JsonObject]]
+      val nodeJsonTuples: Seq[(String, Json)] = nodeVerifiersJson.get.flatMap(f => f.toMap)
       val nvs: List[NodeConfig] = nodeJsonTuples
         .map({ case (k, v) =>
           val verifiers = v.as[List[String]].get
