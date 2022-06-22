@@ -1,5 +1,4 @@
 package com.prateek.xmlcompare.verify
-
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.{Success, Try}
@@ -9,6 +8,7 @@ import scala.xml.Utility.trim
 import java.io.File
 
 import com.prateek.xmlcompare.read.{InputFile, Invalid, Valid}
+import com.prateek.xmlcompare.verify.Identification.VerifierId
 import com.prateek.xmlcompare.verify.XPathFactory.{appendAttributeKey, appendText, XPath}
 import com.prateek.xmlcompare.yaml.ComparingCriteriaYamlReader.NodeConfig
 import com.typesafe.scalalogging
@@ -24,7 +24,7 @@ case class VerificationContext(ens: List[Node] = Nil) {
   def append(n: Node): VerificationContext = this.copy(ens.:+(n))
 }
 
-trait Verifier {
+trait Verifier extends Identification {
   def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult
 }
 
@@ -92,6 +92,7 @@ object Verifier {
 //case class NodeVerifier(vp: VerificationProvider) extends Verifier {
 class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
 
+  override val id: VerifierId = "node"
   private val logger = scalalogging.Logger(getClass)
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
@@ -113,6 +114,8 @@ class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
 }
 
 class ChildVerifier(rootVerifier: => Verifier) extends Verifier {
+
+  override val id: VerifierId = "child"
   private val logger = scalalogging.Logger(getClass)
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
@@ -183,6 +186,9 @@ class ChildVerifier(rootVerifier: => Verifier) extends Verifier {
 
 // Verifies Elem.label or Text.text depending on the type of Node passed
 case object LabelTextVerifier extends Verifier {
+
+  override val id: VerifierId = "labeltext"
+
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
     val result = (exp, act) match
       case (e: Text, a: Text) if e.text.equals(a.text) =>
@@ -207,6 +213,9 @@ case object LabelTextVerifier extends Verifier {
 }
 
 case object AttributeVerifier extends Verifier {
+
+  override val id: VerifierId = "attribute"
+
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
     val (expAttr: Set[(String, String)], actAttr: Set[(String, String)]) =
       (exp.attributes.asAttrMap.toSet, act.attributes.asAttrMap.toSet)
