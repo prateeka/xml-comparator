@@ -13,15 +13,15 @@ object ComparingCriteriaYamlReader extends App {
   val json: Json = yaml.parser.parse(new InputStreamReader(config)).get
   println(s"json $json")
 
-  implicit val discoverResponseDecoder: Decoder[DiscoverResponse] = (c: HCursor) =>
-    Right(DiscoverResponse(NodeConfig(c, "discoverResponse")))
+  implicit val discoverResponseDecoder: Decoder[DiscoverResponseConfig] = (c: HCursor) =>
+    Right(DiscoverResponseConfig(NodeConfig(c, "discoverResponse")))
 
-  val dr: DiscoverResponse = json.as[DiscoverResponse].get
+  val dr: DiscoverResponseConfig = json.as[DiscoverResponseConfig].get
   println(s"$dr")
 
   case class NodeConfig(n: String, v: List[String])
 
-  case class DiscoverResponse(discoverResponse: List[NodeConfig])
+  case class DiscoverResponseConfig(discoverResponse: List[NodeConfig])
 
   object NodeConfig {
     def apply(c: HCursor, label: String): List[NodeConfig] = {
