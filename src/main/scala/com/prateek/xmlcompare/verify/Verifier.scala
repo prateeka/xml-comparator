@@ -84,10 +84,10 @@ object Verifier {
   }
 }
 
-/** Compares two nodes using a list of [[Verifiction]] provided by a [[VerificationProvider]]. It follow a fail fast
+/** Compares two nodes using a list of [[Verifiction]] provided by a [[VerificationPredicate]]. It follow a fail fast
   * strategy where it stops comparison after the first [[Mismatch]] encountered.
   *
-  * @param vp [[VerificationProvider]] provides a list of [[Verifier]] for every (nested) [[Node]]
+  * @param vp [[VerificationPredicate]] provides a list of [[Verifier]] for every (nested) [[Node]]
   */
 //case class NodeVerifier(vp: VerificationProvider) extends Verifier {
 class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
