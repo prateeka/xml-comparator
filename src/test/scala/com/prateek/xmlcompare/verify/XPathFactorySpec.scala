@@ -21,15 +21,15 @@ class XPathFactorySpec extends AnyFunSpec {
           <n1>
             <n2></n2>
           </n1>
-        val vc = Seq((n \\ "n1").head, (n \\ "n2").head)
-        XPathFactory(vc) shouldBe "n1\\n2"
+        val ns = Seq((n \\ "n1").head, (n \\ "n2").head)
+        XPathFactory(ns) shouldBe raw"n1\n2"
       }
     }
   }
   describe("attach an attribute key to a parent node") {
     it("returns correct xpath for attribute key") {
-      val appendedXpath = "e1\\e2".appendAttributeKey("k1")
-      appendedXpath shouldBe "e1\\e2\\@k1"
+      val appendedXpath = raw"e1\e2".appendAttributeKey("k1")
+      appendedXpath shouldBe raw"e1\e2\@k1"
     }
   }
 }
