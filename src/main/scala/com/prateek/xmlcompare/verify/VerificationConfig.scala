@@ -2,11 +2,9 @@ package com.prateek.xmlcompare.verify
 
 import com.prateek.xmlcompare.verify.Identification.VerifierId
 
-case class VerificationConfig(discoverResponseConfig: MVC)
-
+type XPathRegex = String
 type MVC = MessageVerificationConfig
+type Verifiers = MessageVerificationConfig
+type MessageVerificationConfig = (XPathRegex, Set[VerifierId])
 
-case class MessageVerificationConfig(
-    xpath: String,
-    verifierIds: Seq[VerifierId]
-)
+case class VerificationConfig(discoverResponseConfig: Seq[MVC])
