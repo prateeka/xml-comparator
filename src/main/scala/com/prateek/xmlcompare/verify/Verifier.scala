@@ -91,7 +91,6 @@ object Verifier {
   */
 //case class NodeVerifier(vp: VerificationProvider) extends Verifier {
 class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
-
   override val id: VerifierId = "node"
   private val logger = scalalogging.Logger(getClass)
 
@@ -114,7 +113,6 @@ class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
 }
 
 class ChildVerifier(rootVerifier: => Verifier) extends Verifier {
-
   override val id: VerifierId = "child"
   private val logger = scalalogging.Logger(getClass)
 
@@ -186,7 +184,6 @@ class ChildVerifier(rootVerifier: => Verifier) extends Verifier {
 
 // Verifies Elem.label or Text.text depending on the type of Node passed
 case object LabelTextVerifier extends Verifier {
-
   override val id: VerifierId = "labeltext"
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
@@ -213,7 +210,6 @@ case object LabelTextVerifier extends Verifier {
 }
 
 case object AttributeVerifier extends Verifier {
-
   override val id: VerifierId = "attribute"
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
