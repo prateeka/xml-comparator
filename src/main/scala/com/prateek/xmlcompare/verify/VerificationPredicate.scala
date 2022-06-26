@@ -4,15 +4,18 @@ import com.prateek.xmlcompare.read.{DiscoverResponse, Message}
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
 enum VerifierId:
-  case Attribute, Child, LabelText, Node
+  case Attribute, Child, Label, Text
   case Ignore // used for ignoring attribute key verification
+  case Node // used only for NodeVerifier but is not queried for approval
 
 // Confirms if a [[Verifier]] can verify a [[XPath]]
 trait VerificationPredicate:
   def apply(msg: Message, vd: VerifierId, xp: XPath): Boolean
 
 object VerificationPredicate:
-  val instance: VerificationPredicate = ???
+  val instance: VerificationPredicate = new RegexVerificationPredicate(
+    new VerificationConfig(Nil: Seq[MVC])
+  )
 
 class RegexVerificationPredicate(vc: VerificationConfig) extends VerificationPredicate:
   override def apply(msg: Message, vid: VerifierId, xp: XPath): Boolean =
