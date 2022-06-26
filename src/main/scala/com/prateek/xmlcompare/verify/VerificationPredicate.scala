@@ -1,14 +1,11 @@
 package com.prateek.xmlcompare.verify
 
 import com.prateek.xmlcompare.read.{DiscoverResponse, Message}
-import com.prateek.xmlcompare.verify.Identification.VerifierId
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
-transparent trait Identification:
-  val id: VerifierId
-
-object Identification:
-  type VerifierId = String
+enum VerifierId:
+  case Attribute, Child, LabelText, Node
+  case Ignore // used for ignoring attribute key verification
 
 // Confirms if a [[Verifier]] can verify a [[XPath]]
 trait VerificationPredicate:

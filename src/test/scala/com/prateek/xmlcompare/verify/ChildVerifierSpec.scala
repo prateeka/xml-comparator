@@ -5,12 +5,12 @@ import scala.xml.Node
 import org.scalatest.funspec.AnyFunSpec
 
 import com.prateek.xmlcompare.read.trim
-import com.prateek.xmlcompare.verify.Identification.VerifierId
+import com.prateek.xmlcompare.verify.VerifierId
 
 class ChildVerifierSpec extends AnyFunSpec {
 
   private val mv = new Verifier {
-    override val id: VerifierId = "dummy"
+    override val id: VerifierId = VerifierId.Node
     override def apply(exp: Node, act: Node)(using
         ctx: VerificationContext
     ): VerificationResult = {
