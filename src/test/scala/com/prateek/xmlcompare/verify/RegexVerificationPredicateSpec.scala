@@ -29,13 +29,13 @@ class RegexVerificationPredicateSpec extends AnyFunSpec:
     val testVerifierId = Text
     it("node TEXT is marked for verification") {
       val vc = verificationConfig(mvc(xpr, Set(Text)))
-      val bool: Boolean = run(vc, testVerifierId, raw"e1\e2\e3\%TEXT")
+      val bool = run(vc, testVerifierId, raw"e1\e2\e3\%TEXT")
       bool shouldBe true
     }
 
-    it("node TEXT is explicityly marked for Ignore") {
+    it("node TEXT is explicitly marked for Ignore") {
       val vc = verificationConfig(mvc(xpr, Set(Ignore)))
-      val bool: Boolean = run(vc, testVerifierId, raw"e1\e2\e3\%TEXT")
+      val bool = run(vc, testVerifierId, raw"e1\e2\e3\%TEXT")
       bool shouldBe false
     }
   }
@@ -45,13 +45,13 @@ class RegexVerificationPredicateSpec extends AnyFunSpec:
     val testVerifierId = Attribute
     it("attribute is marked for verification") {
       val vc = verificationConfig(mvc(xpr, Set(Attribute)))
-      val bool: Boolean = run(vc, testVerifierId, raw"e1\e2\e3\@a1")
+      val bool = run(vc, testVerifierId, raw"e1\e2\e3\@a1")
       bool shouldBe true
     }
 
-    it("attribute is NOT marked for verification") {
+    it("attribute is explicitly marked for Ignore") {
       val vc = verificationConfig(mvc(xpr, Set(Ignore)))
-      val bool: Boolean = run(vc, testVerifierId, raw"e1\e2\@a1")
+      val bool = run(vc, testVerifierId, raw"e1\e2\@a1")
       bool shouldBe false
     }
   }
@@ -69,14 +69,14 @@ class RegexVerificationPredicateSpec extends AnyFunSpec:
       }
 
       it("verifier is NOT selected for verification") {
-        val vc = verificationConfig(mvc(xpr, Set(Label, Attribute)))
+        val vc = verificationConfig(mvc(xpr, Set(Label, Child)))
         val bool = run(vc, Attribute, raw"e1\e2")
         bool shouldBe false
       }
     }
 
     describe(
-      "when xpath exact match is found in mulitple points and the smallest verifier list is chosen"
+      "when xpath exact match is found in multiple points and the smallest verifier list is chosen"
     ) {
       val xpr: XPathRegex = raw"e1\\(.+\\)*e4"
       val testVerifierId = Attribute
