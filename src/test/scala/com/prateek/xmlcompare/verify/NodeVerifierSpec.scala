@@ -4,6 +4,7 @@ import scala.xml.Node
 
 import org.scalatest.funspec.AnyFunSpec
 
+import com.prateek.xmlcompare.read.DiscoverResponse
 import com.prateek.xmlcompare.verify.VerifierId
 
 class NodeVerifierSpec extends AnyFunSpec {
@@ -27,7 +28,7 @@ class NodeVerifierSpec extends AnyFunSpec {
   }
 
   it("test for matching nodes") {
-    given ctx: VerificationContext = VerificationContext()
+    given ctx: VerificationContext = VerificationContext(DiscoverResponse)
     val exp: Node = <Node>"test for matching node</Node>
     val act: Node = <Node>"test for matching node</Node>
     val result = NodeVerifier(Seq(mv)).apply(exp, act)
@@ -35,7 +36,7 @@ class NodeVerifierSpec extends AnyFunSpec {
   }
 
   it("test for non-matching nodes") {
-    given ctx: VerificationContext = VerificationContext()
+    given ctx: VerificationContext = VerificationContext(DiscoverResponse)
     val exp = <Node1>"test for non-matching node</Node1>
     val act = <Node2>"test for non-matching node</Node2>
     val result = NodeVerifier(Seq(mv, mmv)).apply(exp, act)

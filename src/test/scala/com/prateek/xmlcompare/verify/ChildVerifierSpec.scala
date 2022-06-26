@@ -81,6 +81,7 @@ class ChildVerifierSpec extends AnyFunSpec {
   }
 
   private def run(en: Node, an: Node): VerificationResult = {
-    ChildVerifier(mv)(en.trim, an.trim)(using VerificationContext())
+    import com.prateek.xmlcompare.read.DiscoverResponse
+    ChildVerifier(mv)(en.trim, an.trim)(using VerificationContext(DiscoverResponse))
   }
 }

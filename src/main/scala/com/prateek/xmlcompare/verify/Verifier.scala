@@ -1,4 +1,5 @@
 package com.prateek.xmlcompare.verify
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.{Success, Try}
@@ -7,21 +8,25 @@ import scala.xml.Utility.trim
 
 import java.io.File
 
-import com.prateek.xmlcompare.read.{InputFile, Invalid, Valid}
+import com.prateek.xmlcompare.read.{InputFile, Invalid, Message, Valid}
+import com.prateek.xmlcompare.verify.VerificationContext.NodeQueue
 import com.prateek.xmlcompare.verify.XPathFactory.{appendAttributeKey, appendText, XPath}
 import com.prateek.xmlcompare.yaml.ComparingCriteriaYamlReader.NodeConfig
 import com.typesafe.scalalogging
 import com.typesafe.scalalogging.Logger
 
 // Stores the parent xml node tags
-case class VerificationContext(ens: List[Node] = Nil) {
+case class VerificationContext(msg: Message, nq: NodeQueue = Nil) {
 
-  lazy val xpath: XPath = XPathFactory(ens)
+  lazy val xpath: XPath = XPathFactory(nq)
 
   // TODO: why need a list and can this not be replaced by a string?
   //  def append(n: Node): VerificationContext = this.copy(ens.:+(n.string))
-  def append(n: Node): VerificationContext = this.copy(ens.:+(n))
+  def append(n: Node): VerificationContext = this.copy(nq = nq.:+(n))
 }
+
+object VerificationContext:
+  private type NodeQueue = List[Node]
 
 trait Verifier:
   val id: VerifierId
@@ -52,13 +57,14 @@ object Verifier {
     type ActualFileVerificationResult = (File, VerificationResult)
 
     val fvrs: Seq[FileVerificationResult] = expValidFiles
-      .map({ case Valid(en, ef, _) =>
+      .map({ case Valid(en, ef, emsg) =>
         val vrs = new ListBuffer[ActualFileVerificationResult]()
         object InputFileCompare {
           def unapply(av: Valid): Option[ActualFileVerificationResult] = {
             av match
               case Valid(an, af, _) =>
-                val vr: VerificationResult = rootVerifier.apply(en, an)(using VerificationContext())
+                val vr: VerificationResult =
+                  rootVerifier.apply(en, an)(using VerificationContext(msg = emsg))
                 logger.debug(s"comparing file:$ef with $af yields $vr")
                 val afvr = new ActualFileVerificationResult(af, vr)
                 vrs.append(afvr)
@@ -84,23 +90,17 @@ object Verifier {
   }
 }
 
-/** Compares two nodes using a list of [[Verifiction]] provided by a [[VerificationPredicate]]. It follow a fail fast
+/** Compares two nodes using a list of [[Verifier]] approved by a [[VerificationPredicate]]. It follow a fail fast
   * strategy where it stops comparison after the first [[Mismatch]] encountered.
   *
-  * @param vp [[VerificationPredicate]] provides a list of [[Verifier]] for every (nested) [[Node]]
+  * @param vs list of all [[Verifier]] barring [[VerifierId.Ignore]]
   */
-//case class NodeVerifier(vp: VerificationProvider) extends Verifier {
 class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
   override val id: VerifierId = VerifierId.Node
   private val logger = scalalogging.Logger(getClass)
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
     logger.debug(s"comparing expected:${exp.string}")
-//    val nctx = ctx.append(exp)
-    /* Compare `expected` vs `actual` node until first Mismatch occurs. If no Mismatch instances are found then return a
-     Match instance
-     */
-//    val vs: Seq[Verifier] = vp(nctx.path)
     object Verification {
       def unapply(v: Verifier): Option[VerificationResult] = Option(v(exp, act)(using ctx))
     }
@@ -112,73 +112,88 @@ class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
   }
 }
 
-class ChildVerifier(rootVerifier: => Verifier) extends Verifier {
+/** Retrieves and iterates through the child nodes of the expected and actual nodes
+  *
+  * @param rootVerifier usually would be [[NodeVerifier]]
+  * @param vp           confirms if a [[Verifier]] can be used for every (nested) [[Node]]
+  */
+class ChildVerifier(
+    rootVerifier: => Verifier,
+    vp: VerificationPredicate = VerificationPredicate.instance
+) extends Verifier {
   override val id: VerifierId = VerifierId.Child
   private val logger = scalalogging.Logger(getClass)
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
-    /*
-     using an iterator helps us continue comparison of expected vs actual node from the point where the previous
-     actual node matched. This is in accordance with the assumption that a valid node match includes:
-     1. count(actual nodes) >= count(expected nodes).
-     2. even though count(actual nodes) >= count(expected nodes) but they must match in order with the expected nodes.
-     */
-    val iact = act.child.iterator
     val nctx = ctx.append(exp)
-
-    object ExpectedChildNodeVerification {
+    // checking if child verification for expected node can continue
+    if vp(nctx.msg, id, nctx.xpath) then
+      logger.debug(s"${nctx.msg},$id,${nctx.xpath}  is approved")
       /*
-       Compare an expected child node vs untraversed actual child nodes until first match occurs or all actual child nodes
-       are are exhausted. If no Match ever occurs then return the Mismatch instance with the longest context length
-       which indicates deepest successful node comparison.
+       using an iterator helps us continue comparison of expected vs actual node from the point where the previous
+       actual node matched. This is in accordance with the assumption that a valid node match includes:
+       1. count(actual nodes) >= count(expected nodes).
+       2. even though count(actual nodes) >= count(expected nodes) but they must match in order with the expected nodes.
        */
-      def unapply(en: Node): Option[VerificationResult] = {
-        val vrs = new ListBuffer[VerificationResult]
+      val iact = act.child.iterator
 
-        // Compare an expected child node with an actual child node
-        object NodeCompare {
-          def unapply(an: Node): Option[VerificationResult] = {
-            val vr = rootVerifier(en, an)(using nctx)
-            log(en, an, vr)
-            vrs.append(vr)
-            Option(vr)
-          }
-        }
+      object ExpectedChildNodeVerification {
+        /*
+         Compare an expected child node vs untraversed actual child nodes until first match occurs or all actual child nodes
+         are are exhausted. If no Match ever occurs then return the Mismatch instance with the longest context length
+         which indicates deepest successful node comparison.
+         */
+        def unapply(en: Node): Option[VerificationResult] = {
+          val vrs = new ListBuffer[VerificationResult]
 
-        val value: Option[VerificationResult] = {
-          /*
-           Returns the deepest Mismatch VerificationResult. If an expected child node cannot be compared with any actual node as all the
-           actual nodes have been traversed then create a new NodeNotFound(ctx.append(en).path) to be returned.
-           */
-          def maxDepthVerificationResult: Option[VerificationResult] = {
-            val maybeFound = Option(NodeNotFound(s"${nctx.append(en).xpath}"))
-            val result = vrs.maxOption.orElse(maybeFound)
-            result
+          // Compare an expected child node with an actual child node
+          object NodeCompare {
+            def unapply(an: Node): Option[VerificationResult] = {
+              val vr = rootVerifier(en, an)(using nctx)
+              log(en, an, vr)
+              vrs.append(vr)
+              Option(vr)
+            }
           }
 
-          iact
-            .collectFirst({ case NodeCompare(m: Match.type) => m })
-            .orElse(maxDepthVerificationResult)
+          val value: Option[VerificationResult] = {
+            /*
+             Returns the deepest Mismatch VerificationResult. If an expected child node cannot be compared with any actual node as all the
+             actual nodes have been traversed then create a new NodeNotFound(ctx.append(en).path) to be returned.
+             */
+            def maxDepthVerificationResult: Option[VerificationResult] = {
+              val maybeFound = Option(NodeNotFound(s"${nctx.append(en).xpath}"))
+              val result = vrs.maxOption.orElse(maybeFound)
+              result
+            }
+
+            iact
+              .collectFirst({ case NodeCompare(m: Match.type) => m })
+              .orElse(maxDepthVerificationResult)
+          }
+          value
         }
-        value
+
+        private given logger: Logger = scalalogging.Logger(getClass)
       }
 
-      private given logger: Logger = scalalogging.Logger(getClass)
-    }
-
-    /*
-     Compare expected child nodes vs actual child nodes until an expected child node encounters Mismatch error. Return the Mismatch encountered else
-     if no Mismatch instances are found then return Match instance implying all the expected child nodes found a matching actual child node.
-     */
-    val value = {
-      val ecs: Seq[Node] = exp.child
-      if ecs.nonEmpty then logger.debug(s"${exp.string} children: $ecs")
-      val csvr = ecs
-        .collectFirst { case ExpectedChildNodeVerification(vr: Mismatch) => vr }
-        .getOrElse(Match)
-      csvr
-    }
-    value
+      /*
+       Compare expected child nodes vs actual child nodes until an expected child node encounters Mismatch error. Return the Mismatch encountered else
+       if no Mismatch instances are found then return Match instance implying all the expected child nodes found a matching actual child node.
+       */
+      val value = {
+        val ecs: Seq[Node] = exp.child
+        if ecs.nonEmpty then logger.debug(s"${exp.string} children: $ecs")
+        val csvr = ecs
+          .collectFirst { case ExpectedChildNodeVerification(vr: Mismatch) => vr }
+          .getOrElse(Match)
+        csvr
+      }
+      value
+    else
+      logger.debug(s"${nctx.msg},$id,${nctx.xpath}  is not approved")
+      Match
+    end if
   }
 }
 
