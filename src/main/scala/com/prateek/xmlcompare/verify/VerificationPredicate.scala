@@ -3,11 +3,6 @@ package com.prateek.xmlcompare.verify
 import com.prateek.xmlcompare.read.{DiscoverResponse, Message}
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
-enum VerifierId:
-  case Attribute, Child, Label, Text
-  case Ignore // used for ignoring attribute key verification
-  case Node // used only for NodeVerifier but is not queried for approval
-
 // Confirms if a [[Verifier]] can verify a [[XPath]]
 trait VerificationPredicate:
   def apply(msg: Message, vd: VerifierId, xp: XPath): Boolean
