@@ -1,4 +1,4 @@
-package com.prateek.xmlcompare.yaml
+package com.prateek.xmlcompare.config
 
 import java.io.InputStreamReader
 
@@ -7,8 +7,10 @@ import cats.syntax.either.*
 import io.circe.*
 import io.circe.generic.semiauto.*
 
-object ComparingCriteriaYamlReader extends App {
+trait VerificationConfigReader:
+  def read(): VerificationConfig
 
+object ComparingCriteriaYamlReader extends VerificationConfigReader:
   val config = getClass.getClassLoader.getResourceAsStream("yaml/criteria-config.yaml")
   val json: Json = yaml.parser.parse(new InputStreamReader(config)).get
   println(s"json $json")
@@ -19,9 +21,17 @@ object ComparingCriteriaYamlReader extends App {
   val dr: DiscoverResponseConfig = json.as[DiscoverResponseConfig].get
   println(s"$dr")
 
+  override def read(): VerificationConfig = ???
+
   case class NodeConfig(n: String, v: List[String])
 
   case class DiscoverResponseConfig(discoverResponse: List[NodeConfig])
+
+  extension [A](e: Either[Error, A]) {
+    def get: A = e match
+      case Left(error)  => throw error
+      case Right(value) => value
+  }
 
   object NodeConfig {
     def apply(c: HCursor, label: String): List[NodeConfig] = {
@@ -37,11 +47,4 @@ object ComparingCriteriaYamlReader extends App {
       nvs
     }
   }
-  extension [A](e: Either[Error, A]) {
-    def get: A = {
-      e match
-        case Left(error)  => throw error
-        case Right(value) => value
-    }
-  }
-}
+end ComparingCriteriaYamlReader

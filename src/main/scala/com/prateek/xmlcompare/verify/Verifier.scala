@@ -13,7 +13,6 @@ import com.prateek.xmlcompare.read.{InputFile, Invalid, Message, Valid}
 import com.prateek.xmlcompare.verify.VerificationContext.NodeQueue
 import com.prateek.xmlcompare.verify.Verifier.getClass
 import com.prateek.xmlcompare.verify.XPathFactory.{appendAttributeKey, appendText, XPath}
-import com.prateek.xmlcompare.yaml.ComparingCriteriaYamlReader.NodeConfig
 import com.typesafe.scalalogging
 import com.typesafe.scalalogging.Logger
 
