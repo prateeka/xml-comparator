@@ -3,16 +3,18 @@ package com.prateek.xmlcompare.verify
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
-import com.prateek.xmlcompare.read.DiscoverResponse
+import com.prateek.xmlcompare.read.{DiscoverResponse, Message}
+import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
 class TextVerifierSpec extends AnyFunSpec {
+  val vp: VerificationPredicate = (_: Message, _: VerifierId, _: XPath) => true
 
   describe("comparing two matching nodes") {
     it("should return Match") {
       val exp = <Node>"test for matching node</Node>
       val act = <Node>"test for matching node</Node>
       val ctx: VerificationContext = VerificationContext(DiscoverResponse).append(exp)
-      assertResult(Match)(TextVerifier()(exp.child.head, act.child.head)(using ctx))
+      assertResult(Match)(TextVerifier(vp)(exp.child.head, act.child.head)(using ctx))
     }
   }
 
@@ -21,7 +23,7 @@ class TextVerifierSpec extends AnyFunSpec {
       val exp = <Node1>"test for non-matching node</Node1>
       val act = <Node2>"test for non-matching node</Node2>
       val ctx: VerificationContext = VerificationContext(DiscoverResponse)
-      TextVerifier()(exp, act)(using ctx) shouldBe Match
+      TextVerifier(vp)(exp, act)(using ctx) shouldBe Match
     }
   }
 
@@ -30,7 +32,7 @@ class TextVerifierSpec extends AnyFunSpec {
       val exp = <Node1>text1</Node1>
       val act = <Node1>text2</Node1>
       val ctx: VerificationContext = VerificationContext(DiscoverResponse).append(exp)
-      TextVerifier()(exp.child.head, act.child.head)(using ctx) shouldBe NodeTextNotFound(
+      TextVerifier(vp)(exp.child.head, act.child.head)(using ctx) shouldBe NodeTextNotFound(
         "Node1\\%TEXT"
       )
     }
