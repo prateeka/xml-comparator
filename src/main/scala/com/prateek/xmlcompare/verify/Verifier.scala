@@ -204,15 +204,15 @@ case class LabelVerifier(vp: VerificationPredicate = VerificationPredicate.insta
   override val id: VerifierId = VerifierId.Label
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
+    def compare(et: String, at: String, xp: XPath) =
+      if et.equals(at) then Match else NodeNotFound(s"$xp")
+    end compare
+
     val result = (exp, act) match
-      case (_: Text, _: Text) => Match
-      case (e: Node, a: Node) if e.label.equals(a.label) =>
-        val vr = Match
-        log(e, a, vr)
-        vr
+      case (Text(_), Text(_)) => Match
       case (e: Node, a: Node) =>
-        val vr = NodeNotFound(s"${ctx.append(e).xpath}")
-        log(e, a, vr)
+        val xp = ctx.append(e).xpath
+        val vr = if vp(ctx.msg, id, xp) then compare(e.label, a.label, xp) else Match
         vr
     result
 
@@ -224,14 +224,23 @@ case class TextVerifier(vp: VerificationPredicate = VerificationPredicate.instan
   override val id: VerifierId = VerifierId.Text
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
+    object TextComparator:
+      def unapply(t2: (Node, Node)): Option[VerificationResult] = t2 match
+        case (Text(et), Text(at)) =>
+          val xp = ctx.xpath.appendText()
+          val vr = if vp(ctx.msg, id, xp) then compare(et, at, xp) else Match
+          Option(vr)
+        case _ => None
+      end unapply
+
+      private def compare(et: String, at: String, xp: XPath) =
+        if et.equals(at) then Match else NodeTextNotFound(s"$xp")
+      end compare
+    end TextComparator
+
     val result = (exp, act) match
-      case (e: Text, a: Text) if e.text.equals(a.text) =>
-        val vr = Match
-        log(e, a, vr)
-        vr
-      case (e: Text, a: Text) =>
-        val vr = NodeTextNotFound(s"${ctx.xpath.appendText()}")
-        log(e, a, vr)
+      case TextComparator(vr) =>
+        log(exp, act, vr)
         vr
       case (_: Node, _: Node) => Match
     result
@@ -240,14 +249,18 @@ case class TextVerifier(vp: VerificationPredicate = VerificationPredicate.instan
 }
 
 case class AttributeVerifier(vp: VerificationPredicate = VerificationPredicate.instance)
-    extends Verifier {
+    extends Verifier:
   override val id: VerifierId = VerifierId.Attribute
 
-  override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {
+  override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
     val (expAttr: Set[(String, String)], actAttr: Set[(String, String)]) =
       (exp.attributes.asAttrMap.toSet, act.attributes.asAttrMap.toSet)
     //      TODO: currently reports the first attributeKey missing. update the Verifier.apply to return Seq[VerificationResult]
     val vr = expAttr
+      .filter { case (ek, _) =>
+        val xp = ctx.xpath.appendAttributeKey(ek)
+        vp(ctx.msg, id, xp)
+      }
       .find({ case (ek, ev) => !actAttr.contains(ek, ev) })
       .map({ case (ek, _) =>
         AttributeMissing(s"${ctx.append(exp).xpath.appendAttributeKey(ek)}")
@@ -255,10 +268,9 @@ case class AttributeVerifier(vp: VerificationPredicate = VerificationPredicate.i
       .getOrElse(Match)
     logger.debug(s"comparing attributes: $expAttr & $actAttr yields $vr")
     vr
-  }
-
+  end apply
   private given logger: Logger = scalalogging.Logger(getClass)
-}
+end AttributeVerifier
 
 private def log(es: Node, as: Node, vr: VerificationResult)(using logger: Logger): Unit = {
   logger.debug(
