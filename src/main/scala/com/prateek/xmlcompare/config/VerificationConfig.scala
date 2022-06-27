@@ -5,7 +5,7 @@ type MVC = MessageVerificationConfig
 type Verifiers = MessageVerificationConfig
 type MessageVerificationConfig = (XPathRegex, Set[VerifierId])
 
-case class VerificationConfig(discoverResponseConfig: Seq[MVC])
+case class VerificationConfig(discoverResponse: Seq[MVC])
 
 enum VerifierId:
   case Attribute, Child, Label, Text

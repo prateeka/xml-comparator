@@ -17,17 +17,17 @@ object YamlReader extends App:
   val inputStream = getClass.getClassLoader.getResourceAsStream("yaml/criteria-config.yaml")
   val json: Json = parse(new InputStreamReader(inputStream)).get
   println(s"json: $json")
-  val dr: DiscoverResponseConfig = json.as[DiscoverResponseConfig].get
+  val dr: DiscoverResponse = json.as[DiscoverResponse].get
 
-  given discoverResponseDecoder: Decoder[DiscoverResponseConfig] = (c: HCursor) =>
-    Right(DiscoverResponseConfig(NodeConfig(c, "discoverResponse")))
+  given discoverResponseDecoder: Decoder[DiscoverResponse] = (c: HCursor) =>
+    Right(DiscoverResponse(NodeConfig(c, "discoverResponse")))
 
   println(s"discoverResponseDecoder: $dr")
   //  override def read(): VerificationConfig = ???
 
   case class NodeConfig(n: String, v: List[String])
 
-  case class DiscoverResponseConfig(discoverResponse: List[NodeConfig])
+  case class DiscoverResponse(discoverResponse: List[NodeConfig])
 
   extension [A](e: Either[Error, A]) {
     def get: A = e match

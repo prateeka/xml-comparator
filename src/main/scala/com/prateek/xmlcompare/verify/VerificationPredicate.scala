@@ -23,7 +23,7 @@ class RegexVerificationPredicate(vc: VerificationConfig) extends VerificationPre
 
     msg match
       case DiscoverResponse =>
-        val matchingVerifierIds = vc.discoverResponseConfig.collect({
+        val matchingVerifierIds = vc.discoverResponse.collect({
           case (configXpath: XPath, vids) if matches(configXpath) => vids
         })
         val minMatchingVerifiers = matchingVerifierIds.minBy(_.size)
