@@ -14,7 +14,7 @@ trait VerificationPredicate:
 
 object VerificationPredicate:
   val instance: VerificationPredicate = new RegexVerificationPredicate(
-    new VerificationConfig(Nil: Seq[MVC])
+    VerificationConfig(Nil: Seq[MVC])
   )
 
 class RegexVerificationPredicate(vc: VerificationConfig) extends VerificationPredicate:
