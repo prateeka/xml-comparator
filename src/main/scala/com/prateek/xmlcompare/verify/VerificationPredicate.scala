@@ -1,5 +1,6 @@
 package com.prateek.xmlcompare.verify
 
+import com.prateek.xmlcompare.config.{MVC, VerificationConfig, VerifierId}
 import com.prateek.xmlcompare.read.{DiscoverResponse, Message}
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 

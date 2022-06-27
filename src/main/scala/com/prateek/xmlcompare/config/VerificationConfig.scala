@@ -1,6 +1,4 @@
-package com.prateek.xmlcompare.verify
-
-import com.prateek.xmlcompare.verify.VerifierId
+package com.prateek.xmlcompare.config
 
 type XPathRegex = String
 type MVC = MessageVerificationConfig

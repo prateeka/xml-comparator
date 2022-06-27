@@ -5,12 +5,12 @@ import scala.collection.immutable.Set.*
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
+import com.prateek.xmlcompare.config.{MVC, VerificationConfig, VerifierId, XPathRegex}
+import com.prateek.xmlcompare.config.VerifierId.*
 import com.prateek.xmlcompare.read.DiscoverResponse
-import com.prateek.xmlcompare.verify.VerifierId.*
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
 class RegexVerificationPredicateSpec extends AnyFunSpec:
-
   private val mvc1 = new MVC(".+", Set(Label, Text, Child))
 
   private def run(vc: VerificationConfig, testVerifierId: VerifierId, xp: XPath) =

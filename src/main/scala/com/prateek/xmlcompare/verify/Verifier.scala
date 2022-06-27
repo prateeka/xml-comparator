@@ -8,6 +8,7 @@ import scala.xml.Utility.trim
 
 import java.io.File
 
+import com.prateek.xmlcompare.config.VerifierId
 import com.prateek.xmlcompare.read.{InputFile, Invalid, Message, Valid}
 import com.prateek.xmlcompare.verify.VerificationContext.NodeQueue
 import com.prateek.xmlcompare.verify.Verifier.getClass

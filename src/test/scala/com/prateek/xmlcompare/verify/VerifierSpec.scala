@@ -8,6 +8,7 @@ import java.io.File
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
+import com.prateek.xmlcompare.config.VerifierId
 import com.prateek.xmlcompare.read.{trim, DiscoverResponse, Message, Valid}
 import com.prateek.xmlcompare.stringToFile
 import com.prateek.xmlcompare.verify.XPathFactory.XPath

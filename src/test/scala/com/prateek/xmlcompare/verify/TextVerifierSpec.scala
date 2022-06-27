@@ -3,6 +3,7 @@ package com.prateek.xmlcompare.verify
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers.*
 
+import com.prateek.xmlcompare.config.VerifierId
 import com.prateek.xmlcompare.read.{DiscoverResponse, Message}
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 

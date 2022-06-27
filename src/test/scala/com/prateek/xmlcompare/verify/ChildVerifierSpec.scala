@@ -4,8 +4,8 @@ import scala.xml.Node
 
 import org.scalatest.funspec.AnyFunSpec
 
+import com.prateek.xmlcompare.config.VerifierId
 import com.prateek.xmlcompare.read.{trim, DiscoverResponse, Message}
-import com.prateek.xmlcompare.verify.VerifierId
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
 class ChildVerifierSpec extends AnyFunSpec {

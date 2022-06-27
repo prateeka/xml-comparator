@@ -4,8 +4,8 @@ import scala.xml.Node
 
 import org.scalatest.funspec.AnyFunSpec
 
+import com.prateek.xmlcompare.config.VerifierId
 import com.prateek.xmlcompare.read.DiscoverResponse
-import com.prateek.xmlcompare.verify.VerifierId
 
 class NodeVerifierSpec extends AnyFunSpec {
   val mv: Verifier = new Verifier {
