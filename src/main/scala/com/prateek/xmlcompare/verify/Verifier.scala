@@ -35,7 +35,7 @@ trait Verifier:
   def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult
 
 object Verifier:
-  val verifiers: Seq[Verifier] = Seq(LabelTextVerifier, AttributeVerifier, cv)
+  val verifiers: Seq[Verifier] = Seq(LabelVerifier, TextVerifier, AttributeVerifier, cv)
   private val nv: NodeVerifier = NodeVerifier(verifiers)
   private val cv: ChildVerifier = ChildVerifier(nv)
   private val logger = scalalogging.Logger(getClass)
@@ -199,7 +199,26 @@ class ChildVerifier(
 }
 
 // Verifies Elem.label or Text.text depending on the type of Node passed
-case object LabelTextVerifier extends Verifier {
+case object LabelVerifier extends Verifier {
+  override val id: VerifierId = VerifierId.Label
+
+  override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
+    val result = (exp, act) match
+      case (_: Text, _: Text) => Match
+      case (e: Node, a: Node) if e.label.equals(a.label) =>
+        val vr = Match
+        log(e, a, vr)
+        vr
+      case (e: Node, a: Node) =>
+        val vr = NodeNotFound(s"${ctx.append(e).xpath}")
+        log(e, a, vr)
+        vr
+    result
+
+  private given logger: Logger = scalalogging.Logger(getClass)
+}
+
+case object TextVerifier extends Verifier {
   override val id: VerifierId = VerifierId.Text
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
@@ -212,14 +231,7 @@ case object LabelTextVerifier extends Verifier {
         val vr = NodeTextNotFound(s"${ctx.xpath.appendText()}")
         log(e, a, vr)
         vr
-      case (e: Node, a: Node) if e.label.equals(a.label) =>
-        val vr = Match
-        log(e, a, vr)
-        vr
-      case (e: Node, a: Node) =>
-        val vr = NodeNotFound(s"${ctx.append(e).xpath}")
-        log(e, a, vr)
-        vr
+      case (_: Node, _: Node) => Match
     result
 
   private given logger: Logger = scalalogging.Logger(getClass)
