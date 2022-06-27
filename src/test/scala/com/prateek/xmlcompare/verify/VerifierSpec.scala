@@ -52,7 +52,6 @@ class VerifierSpec extends AnyFunSpec {
             )
             val evs: Seq[Valid] = Seq(ev1, ev2)
             val avs: Seq[Valid] = Seq(av1, av2)
-            //            val vp: VerificationProvider = (_: String) => Seq(LabelVerifier)
             val vrs = Verifier(evs, avs, NodeVerifier(Seq(LabelTextVerifier)))
             vrs should contain theSameElementsInOrderAs Seq(
               FVR("e1", "a1", Match),
@@ -60,6 +59,7 @@ class VerifierSpec extends AnyFunSpec {
             )
           }
         }
+
         describe("using Label, Attribute and Child verification") {
           it(
             "one expected file finds a match and the second expected file finds a mismatch with the correct missing node"
@@ -127,6 +127,7 @@ class VerifierSpec extends AnyFunSpec {
           }
         }
       }
+
       describe(
         "file2: only the nodes of an expected file and its corresponding actual file match while the attibutes DO NOT match"
       ) {

@@ -10,6 +10,7 @@ import java.io.File
 
 import com.prateek.xmlcompare.read.{InputFile, Invalid, Message, Valid}
 import com.prateek.xmlcompare.verify.VerificationContext.NodeQueue
+import com.prateek.xmlcompare.verify.Verifier.getClass
 import com.prateek.xmlcompare.verify.XPathFactory.{appendAttributeKey, appendText, XPath}
 import com.prateek.xmlcompare.yaml.ComparingCriteriaYamlReader.NodeConfig
 import com.typesafe.scalalogging
@@ -33,7 +34,7 @@ trait Verifier:
 
   def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult
 
-object Verifier {
+object Verifier:
   val verifiers: Seq[Verifier] = Seq(LabelTextVerifier, AttributeVerifier, cv)
   private val nv: NodeVerifier = NodeVerifier(verifiers)
   private val cv: ChildVerifier = ChildVerifier(nv)
@@ -53,7 +54,7 @@ object Verifier {
       expValidFiles: Seq[Valid],
       actValidFiles: Seq[Valid],
       rootVerifier: Verifier = NodeVerifier(verifiers)
-  ): Seq[FileVerificationResult] = {
+  ): Seq[FileVerificationResult] =
     type ActualFileVerificationResult = (File, VerificationResult)
 
     val fvrs: Seq[FileVerificationResult] = expValidFiles
@@ -87,8 +88,8 @@ object Verifier {
         fvr
       })
     fvrs
-  }
-}
+  end apply
+end Verifier
 
 /** Compares two nodes using a list of [[Verifier]] approved by a [[VerificationPredicate]]. It follow a fail fast
   * strategy where it stops comparison after the first [[Mismatch]] encountered.
@@ -199,7 +200,7 @@ class ChildVerifier(
 
 // Verifies Elem.label or Text.text depending on the type of Node passed
 case object LabelTextVerifier extends Verifier {
-  override val id: VerifierId = VerifierId.LabelText
+  override val id: VerifierId = VerifierId.Text
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
     val result = (exp, act) match
