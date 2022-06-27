@@ -7,7 +7,7 @@ import com.prateek.xmlcompare.read.{DiscoverResponse, Message}
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
 class TextVerifierSpec extends AnyFunSpec {
-  val vp: VerificationPredicate = (_: Message, _: VerifierId, _: XPath) => true
+  private val vp: VerificationPredicate = (_: Message, _: VerifierId, _: XPath) => true
 
   describe("comparing two matching nodes") {
     it("should return Match") {

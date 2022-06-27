@@ -4,13 +4,16 @@ import scala.xml.Node
 
 import org.scalatest.funspec.AnyFunSpec
 
-import com.prateek.xmlcompare.read.trim
+import com.prateek.xmlcompare.read.{trim, DiscoverResponse, Message}
 import com.prateek.xmlcompare.verify.VerifierId
+import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
 class ChildVerifierSpec extends AnyFunSpec {
 
+  private val vp: VerificationPredicate = (_: Message, _: VerifierId, _: XPath) => true
   private val mv = new Verifier {
     override val id: VerifierId = VerifierId.Node
+
     override def apply(exp: Node, act: Node)(using
         ctx: VerificationContext
     ): VerificationResult = {
@@ -20,7 +23,6 @@ class ChildVerifierSpec extends AnyFunSpec {
       vr
     }
   }
-
   describe("when all the expected nodes match subset of actual nodes") {
     it("should return Match") {
       val en =
@@ -81,7 +83,6 @@ class ChildVerifierSpec extends AnyFunSpec {
   }
 
   private def run(en: Node, an: Node): VerificationResult = {
-    import com.prateek.xmlcompare.read.DiscoverResponse
-    ChildVerifier(mv)(en.trim, an.trim)(using VerificationContext(DiscoverResponse))
+    ChildVerifier(mv, vp)(en.trim, an.trim)(using VerificationContext(DiscoverResponse))
   }
 }
