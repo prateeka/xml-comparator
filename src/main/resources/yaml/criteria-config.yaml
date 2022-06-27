@@ -1,9 +1,11 @@
 discoverResponse:
-  - n1.n2:
-      - cc1
-      - cc3
-      - cc2
-  - n3.n4:
-      - cc4
-      - cc5
-      - cc6
+  - n1\\n2\\(.+\\)*n5:
+      - Label
+      - Text
+      - Child
+  - e1\\e2\\e3\\%TEXT:
+      - Ignore
+  - e1\\e2\\e3\\@a1:
+      - Label
+      - Text
+      - Attribute
