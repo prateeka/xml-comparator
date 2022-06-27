@@ -35,7 +35,7 @@ trait Verifier:
   def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult
 
 object Verifier:
-  val verifiers: Seq[Verifier] = Seq(LabelVerifier, TextVerifier, AttributeVerifier, cv)
+  val verifiers: Seq[Verifier] = Seq(LabelVerifier(), TextVerifier(), AttributeVerifier(), cv)
   private val nv: NodeVerifier = NodeVerifier(verifiers)
   private val cv: ChildVerifier = ChildVerifier(nv)
   private val logger = scalalogging.Logger(getClass)
@@ -199,7 +199,8 @@ class ChildVerifier(
 }
 
 // Verifies Elem.label or Text.text depending on the type of Node passed
-case object LabelVerifier extends Verifier {
+case class LabelVerifier(vp: VerificationPredicate = VerificationPredicate.instance)
+    extends Verifier {
   override val id: VerifierId = VerifierId.Label
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
@@ -218,7 +219,8 @@ case object LabelVerifier extends Verifier {
   private given logger: Logger = scalalogging.Logger(getClass)
 }
 
-case object TextVerifier extends Verifier {
+case class TextVerifier(vp: VerificationPredicate = VerificationPredicate.instance)
+    extends Verifier {
   override val id: VerifierId = VerifierId.Text
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
@@ -237,7 +239,8 @@ case object TextVerifier extends Verifier {
   private given logger: Logger = scalalogging.Logger(getClass)
 }
 
-case object AttributeVerifier extends Verifier {
+case class AttributeVerifier(vp: VerificationPredicate = VerificationPredicate.instance)
+    extends Verifier {
   override val id: VerifierId = VerifierId.Attribute
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult = {

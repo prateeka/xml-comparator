@@ -52,7 +52,7 @@ class VerifierSpec extends AnyFunSpec {
             )
             val evs: Seq[Valid] = Seq(ev1, ev2)
             val avs: Seq[Valid] = Seq(av1, av2)
-            val vrs = Verifier(evs, avs, NodeVerifier(Seq(LabelTextVerifier)))
+            val vrs = Verifier(evs, avs, NodeVerifier(Seq(LabelVerifier())))
             vrs should contain theSameElementsInOrderAs Seq(
               FVR("e1", "a1", Match),
               FVR("e2", "a2", Match)
@@ -108,9 +108,8 @@ class VerifierSpec extends AnyFunSpec {
             val avs: Seq[Valid] = trimNode(av1, av2)
 
             val vrs = {
-              // MockVerificationProvider adds LabelVerifier,AttributeVerifier by default
-              //              lazy val mvp: VerificationProvider = new MockVerificationProvider(cv)
-              lazy val verifiers: Seq[Verifier] = Seq(LabelTextVerifier, AttributeVerifier, cv)
+              lazy val verifiers: Seq[Verifier] =
+                Seq(LabelVerifier(), TextVerifier(), AttributeVerifier(), cv)
               lazy val nv: NodeVerifier = NodeVerifier(verifiers)
               lazy val cv: ChildVerifier = ChildVerifier(nv)
               Verifier(evs, avs, nv)
@@ -171,13 +170,7 @@ class VerifierSpec extends AnyFunSpec {
             val avs: Seq[Valid] = trimNode(av1, av2)
 
             val vs = {
-              // MockVerificationProvider adds LabelVerifier,AttributeVerifier by default
-              /*
-              lazy val mvp: VerificationProvider = new MockVerificationProvider(cv)
-              lazy val nv = NodeVerifier(mvp)
-              lazy val cv = ChildVerifier(nv)
-               */
-              lazy val verifiers: Seq[Verifier] = Seq(LabelTextVerifier, AttributeVerifier, cv)
+              lazy val verifiers: Seq[Verifier] = Seq(LabelVerifier(), AttributeVerifier(), cv)
               lazy val nv: NodeVerifier = NodeVerifier(verifiers)
               lazy val cv: ChildVerifier = ChildVerifier(nv)
               Verifier(evs, avs, nv)
@@ -206,7 +199,7 @@ class VerifierSpec extends AnyFunSpec {
     //    type byNameVerifier = () => Verifier
     lazy val cv: ChildVerifier = cv1
 
-    override def apply(nt: String): Seq[Verifier] = Seq(LabelVerifier, AttributeVerifier, cv)
+    override def apply(nt: String): Seq[Verifier] = Seq(LabelVerifier(), AttributeVerifier(), cv)
   }*/
 
 }

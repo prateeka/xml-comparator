@@ -12,7 +12,7 @@ class TextVerifierSpec extends AnyFunSpec {
       val exp = <Node>"test for matching node</Node>
       val act = <Node>"test for matching node</Node>
       val ctx: VerificationContext = VerificationContext(DiscoverResponse).append(exp)
-      assertResult(Match)(TextVerifier(exp.child.head, act.child.head)(using ctx))
+      assertResult(Match)(TextVerifier()(exp.child.head, act.child.head)(using ctx))
     }
   }
 
@@ -21,7 +21,7 @@ class TextVerifierSpec extends AnyFunSpec {
       val exp = <Node1>"test for non-matching node</Node1>
       val act = <Node2>"test for non-matching node</Node2>
       val ctx: VerificationContext = VerificationContext(DiscoverResponse)
-      TextVerifier(exp, act)(using ctx) shouldBe Match
+      TextVerifier()(exp, act)(using ctx) shouldBe Match
     }
   }
 
@@ -30,7 +30,7 @@ class TextVerifierSpec extends AnyFunSpec {
       val exp = <Node1>text1</Node1>
       val act = <Node1>text2</Node1>
       val ctx: VerificationContext = VerificationContext(DiscoverResponse).append(exp)
-      TextVerifier(exp.child.head, act.child.head)(using ctx) shouldBe NodeTextNotFound(
+      TextVerifier()(exp.child.head, act.child.head)(using ctx) shouldBe NodeTextNotFound(
         "Node1\\%TEXT"
       )
     }
