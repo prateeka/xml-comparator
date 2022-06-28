@@ -22,6 +22,16 @@ object YamlReader extends App:
   given discoverResponseDecoder: Decoder[DiscoverResponse] = (c: HCursor) =>
     Right(DiscoverResponse(NodeConfig(c, "discoverResponse")))
 
+  given MVCDecoder: Decoder[MVC] = (c: HCursor) =>
+    c.as[(String, Json)].get
+    Right(DiscoverResponse(NodeConfig(c, "discoverResponse")))
+    ???
+
+  given verifierIdDecoder: Decoder[Set[VerifierId]] = (c: HCursor) =>
+    val stringVerifierIds = c.as[Set[String]].get
+    val vids = stringVerifierIds.map(VerifierId.valueOf)
+    Right(vids)
+
   println(s"discoverResponseDecoder: $dr")
   //  override def read(): VerificationConfig = ???
 
@@ -43,12 +53,21 @@ object YamlReader extends App:
         value
       }
       val nodeJsonTuples: Seq[(String, Json)] = {
-        val value = nodeVerifiersJson.get
-        val value1 = value.flatMap(f => f.toMap)
+        val value: Seq[JsonObject] = nodeVerifiersJson.get
+        val value2 = value
+          .flatMap((jo: JsonObject) => jo.toList)
+          .map({ case (xpr, json) =>
+            val vids = json.as[Set[VerifierId]].get
+            (xpr, vids)
+          })
+        val vc = VerificationConfig(value2)
+        println(vc)
+        val value1: Seq[(String, Json)] = value.flatMap((f: JsonObject) => f.toMap)
         value1
       }
       val nvs: List[NodeConfig] = nodeJsonTuples
         .map({ case (k, v) =>
+          //          v.as[Set[VerifierId]].get.foreach(println)
           val verifiers = v.as[List[String]].get
           val config = NodeConfig(k, verifiers)
           config
