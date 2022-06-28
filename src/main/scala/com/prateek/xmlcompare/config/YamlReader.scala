@@ -25,9 +25,8 @@ object YamlReader extends App:
     val v1: Seq[JsonObject] =
       val v11 = c.downField("discoverResponse")
       v11.as[List[JsonObject]].get
-    // Seq of Tuple2[XPathRegex, Seq[VerifierId]]
-    val v2: Seq[(String, Set[VerifierId])] =
-      val v22: Seq[(String, Json)] = v1.flatMap(_.toList)
+    val v2: Seq[(XPathRegex, Set[VerifierId])] =
+      val v22: Seq[(XPathRegex, Json)] = v1.flatMap(_.toList)
       v22.map({ case (xpr, json) =>
         val vids = json.as[Set[VerifierId]].get
         (xpr, vids)
