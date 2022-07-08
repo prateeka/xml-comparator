@@ -1,27 +1,11 @@
-request:
-  exclude:
-    - n1
-    - n2
-    - n3
-  defaultInclude:
-    - cc1
-    - cc2
-    - cc3
-  n1:
-    - cc1
-    - cc3
-    - cc2
-  n1.n2:
-    - cc4
-    - cc5
-    - cc2
-response:
-  exclude:
-    - n2
-    - n3
-  defaultInclude:
-    - cc1
-    - cc3
-  n1.n2:
-    - cc5
-    - cc2
+discoverResponse:
+  - n1\\n2\\(.+\\)*n5:
+      - Label
+      - Text
+      - Child
+  - e1\\e2\\e3\\%TEXT:
+      - Ignore
+  - e1\\e2\\e3\\@a1:
+      - Label
+      - Text
+      - Attribute
