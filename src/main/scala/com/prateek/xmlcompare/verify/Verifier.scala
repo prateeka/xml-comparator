@@ -17,22 +17,24 @@ import com.typesafe.scalalogging
 import com.typesafe.scalalogging.Logger
 
 // Stores the parent xml node tags
-case class VerificationContext(msg: Message, nq: NodeQueue = Nil) {
+case class VerificationContext(msg: Message, nq: NodeQueue = Nil):
 
   lazy val xpath: XPath = XPathFactory(nq)
 
   // TODO: why need a list and can this not be replaced by a string?
   //  def append(n: Node): VerificationContext = this.copy(ens.:+(n.string))
   def append(n: Node): VerificationContext = this.copy(nq = nq.:+(n))
-}
+end VerificationContext
 
 object VerificationContext:
   private type NodeQueue = List[Node]
+end VerificationContext
 
 trait Verifier:
   val id: VerifierId
 
   def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult
+end Verifier
 
 object Verifier:
   val verifiers: Seq[Verifier] = Seq(LabelVerifier(), TextVerifier(), AttributeVerifier(), cv)
