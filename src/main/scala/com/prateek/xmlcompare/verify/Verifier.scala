@@ -16,9 +16,12 @@ import com.prateek.xmlcompare.verify.XPathFactory.{appendAttributeKey, appendTex
 import com.typesafe.scalalogging
 import com.typesafe.scalalogging.Logger
 
-// Stores the parent xml node tags
+/** Context that carries information needed for further processing
+  *
+  * @param msg : type of Message
+  * @param nq  : store the parent xml node tags
+  */
 case class VerificationContext(msg: Message, nq: NodeQueue = Nil):
-
   lazy val xpath: XPath = XPathFactory(nq)
 
   // TODO: why need a list and can this not be replaced by a string?
