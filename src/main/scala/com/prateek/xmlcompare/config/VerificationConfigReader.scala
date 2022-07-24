@@ -8,14 +8,14 @@ import java.net.URL
 import cats.syntax.either.*
 
 import io.circe.*
-import io.circe.Decoder.Result
 import io.circe.generic.semiauto.*
 import io.circe.yaml.parser.parse
+import io.circe.Decoder.Result
 
-import com.prateek.xmlcompare.Main.getClass
+trait VerificationConfigReader extends (File => VerificationConfig)
 
-trait VerificationConfigReader:
-  def read(config: File): VerificationConfig
+object VerificationConfigReader:
+  def apply(config: File): VerificationConfig = YamlReader(config)
 end VerificationConfigReader
 
 extension [A](e: Either[Error, A])
@@ -44,19 +44,14 @@ given verifierIdsDecoder: Decoder[Set[VerifierId]] = (c: HCursor) =>
   Right(vids)
 end verifierIdsDecoder
 
-case class YamlReader() extends VerificationConfigReader:
+case object YamlReader extends VerificationConfigReader:
   private val logger = com.typesafe.scalalogging.Logger(getClass)
 
-  def read(config: File): VerificationConfig =
+  override def apply(config: File): VerificationConfig =
     val inputStream = new FileInputStream(config)
     val json: Json = parse(new InputStreamReader(inputStream)).get
     logger.debug(s"json: $json")
     val vc: VerificationConfig = json.as[VerificationConfig].get
     logger.debug(s"vc is $vc")
     vc
-end YamlReader
-
-object YamlReader extends App:
-  val url: URL = getClass.getClassLoader.getResource("yaml/criteria-config.yaml")
-  YamlReader().read(new File(url.toURI))
 end YamlReader
