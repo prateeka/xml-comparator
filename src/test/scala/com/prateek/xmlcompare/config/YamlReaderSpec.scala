@@ -15,7 +15,7 @@ class YamlReaderSpec extends AnyFunSpec:
     it("VerificationConfig is correctly populated with the Seq[MessageVerificationConfig]") {
       val vc =
         val url: URL = getClass.getClassLoader.getResource("yaml/criteria-config.yaml")
-        YamlReader().read(new File(url.toURI))
+        YamlReader(new File(url.toURI))
 
       vc.discoverResponse match
         case a :: b :: c :: Nil =>
