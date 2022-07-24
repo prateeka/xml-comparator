@@ -31,3 +31,11 @@ class RegexVerificationPredicate(vc: VerificationConfig) extends VerificationPre
       case _ => ???
   end apply
 end RegexVerificationPredicate
+
+/*
+object RegexVerificationPredicate
+  import java.io.File
+
+  :
+  def apply(config: File): RegexVerificationPredicate =
+    VerificationConfigReader*/
