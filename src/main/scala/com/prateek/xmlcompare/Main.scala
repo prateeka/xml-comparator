@@ -6,6 +6,7 @@ import java.io.File
 
 import org.rogach.scallop.fileConverter
 
+import com.prateek.xmlcompare.config.{VerificationConfig, VerificationConfigReader}
 import com.prateek.xmlcompare.read.*
 import com.prateek.xmlcompare.verify.*
 
@@ -18,7 +19,7 @@ object Main extends App {
     logger.debug(s"args: $args")
     val clp = CommandLineParser[File](args)
     //    TODO: add one more flag to indicate if the input refer to files or directories
-    val (exp: File, act: File) = (clp.expected(), clp.actual())
+    val (exp: File, act: File, config: File) = (clp.expected(), clp.actual(), clp.config())
     logger.info(s"expected: $exp actual: ${clp.actual}")
     val ipFileReaderFunction = InputFileReader(FileListReader.default)
     val ef: Seq[InputFile] = ipFileReaderFunction(exp)
@@ -26,6 +27,7 @@ object Main extends App {
 
     val efp = ef.partitionn
     val afp = af.partitionn
+    val vc: VerificationConfig = VerificationConfigReader(config)
     Verifier(efp._1, afp._1)
   }
 
@@ -44,3 +46,4 @@ object Main extends App {
     }
   }
 }
+//* @param config: config file specifying the xpath and its corresponding [[Verifier]]
