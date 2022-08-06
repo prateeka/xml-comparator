@@ -27,8 +27,8 @@ object Main extends App {
 
     val efp = ef.partitionn
     val afp = af.partitionn
-    val vc: VerificationConfig = VerificationConfigReader(config)
-    Verifier(efp._1, afp._1)
+    val vp = VerificationPredicate(config)
+    Verifier(efp._1, afp._1, vp)
   }
 
   extension (s: Seq[InputFile]) {

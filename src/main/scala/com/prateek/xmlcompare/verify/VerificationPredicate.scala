@@ -1,5 +1,7 @@
 package com.prateek.xmlcompare.verify
 
+import java.io.File
+
 import com.prateek.xmlcompare.config.{MVC, VerificationConfig, VerifierId}
 import com.prateek.xmlcompare.read.{DiscoverResponse, Message}
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
@@ -9,7 +11,7 @@ trait VerificationPredicate:
   def apply(msg: Message, vd: VerifierId, xp: XPath): Boolean
 
 object VerificationPredicate:
-  val instance: VerificationPredicate = new RegexVerificationPredicate(
+  def apply(config: File): VerificationPredicate = new RegexVerificationPredicate(
     VerificationConfig(Nil: Seq[MVC])
   )
 
@@ -34,8 +36,7 @@ end RegexVerificationPredicate
 
 /*
 object RegexVerificationPredicate
-  import java.io.File
 
-  :
-  def apply(config: File): RegexVerificationPredicate =
-    VerificationConfigReader*/
+def apply(config: File): RegexVerificationPredicate =
+  VerificationConfigReader
+*/

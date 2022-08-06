@@ -40,9 +40,6 @@ trait Verifier:
 end Verifier
 
 object Verifier:
-  val verifiers: Seq[Verifier] = Seq(LabelVerifier(), TextVerifier(), AttributeVerifier(), cv)
-  private val nv: NodeVerifier = NodeVerifier(verifiers)
-  private val cv: ChildVerifier = ChildVerifier(nv)
   private val logger = scalalogging.Logger(getClass)
 
   /** Compares each expected file with all the actual files to identify the following:
@@ -50,17 +47,27 @@ object Verifier:
     * 2. If the actual file is not matching any expected file, then indicate the same
     * while listing the node where the mismatch occurred.
     *
-    * @param expValidFiles list of expected files
-    * @param actValidFiles list of actual files
-    * @param rootVerifier  provides [[Verifier]] for the absolute node tag
+    * @param expValidFiles         list of expected files
+    * @param actValidFiles         list of actual files
+    * @param verificationPredicate checks when xml.Node matches against which verifier
     * @return VerificationResult describing if the two files match else for the best mismatch, the node where the mismatch occurred.
     */
   def apply(
       expValidFiles: Seq[Valid],
       actValidFiles: Seq[Valid],
-      rootVerifier: Verifier = NodeVerifier(verifiers)
+    verificationPredicate: VerificationPredicate
   ): Seq[FileVerificationResult] =
     type ActualFileVerificationResult = (File, VerificationResult)
+
+    lazy val verifiers: Seq[Verifier] = Seq(
+      LabelVerifier(verificationPredicate),
+      TextVerifier(verificationPredicate),
+      AttributeVerifier(verificationPredicate),
+      cv
+    )
+    lazy val nv: NodeVerifier = NodeVerifier(verifiers)
+    lazy val cv: ChildVerifier = ChildVerifier(nv, verificationPredicate)
+    val rootVerifier: Verifier = NodeVerifier(verifiers)
 
     val fvrs: Seq[FileVerificationResult] = expValidFiles
       .map({ case Valid(en, ef, emsg) =>
@@ -125,7 +132,7 @@ class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
   */
 class ChildVerifier(
     rootVerifier: => Verifier,
-    vp: VerificationPredicate = VerificationPredicate.instance
+  vp: VerificationPredicate
 ) extends Verifier {
   override val id: VerifierId = VerifierId.Child
   private val logger = scalalogging.Logger(getClass)
@@ -204,8 +211,7 @@ class ChildVerifier(
 }
 
 // Verifies Elem.label or Text.text depending on the type of Node passed
-case class LabelVerifier(vp: VerificationPredicate = VerificationPredicate.instance)
-    extends Verifier {
+case class LabelVerifier(vp: VerificationPredicate) extends Verifier {
   override val id: VerifierId = VerifierId.Label
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
@@ -224,8 +230,7 @@ case class LabelVerifier(vp: VerificationPredicate = VerificationPredicate.insta
   private given logger: Logger = scalalogging.Logger(getClass)
 }
 
-case class TextVerifier(vp: VerificationPredicate = VerificationPredicate.instance)
-    extends Verifier {
+case class TextVerifier(vp: VerificationPredicate) extends Verifier {
   override val id: VerifierId = VerifierId.Text
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
@@ -235,7 +240,7 @@ case class TextVerifier(vp: VerificationPredicate = VerificationPredicate.instan
           val xp = ctx.xpath.appendText()
           val vr = if vp(ctx.msg, id, xp) then compare(et, at, xp) else Match
           Option(vr)
-        case _ => None
+        case _                    => None
       end unapply
 
       private def compare(et: String, at: String, xp: XPath) =
@@ -253,8 +258,7 @@ case class TextVerifier(vp: VerificationPredicate = VerificationPredicate.instan
   private given logger: Logger = scalalogging.Logger(getClass)
 }
 
-case class AttributeVerifier(vp: VerificationPredicate = VerificationPredicate.instance)
-    extends Verifier:
+case class AttributeVerifier(vp: VerificationPredicate) extends Verifier :
   override val id: VerifierId = VerifierId.Attribute
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =
