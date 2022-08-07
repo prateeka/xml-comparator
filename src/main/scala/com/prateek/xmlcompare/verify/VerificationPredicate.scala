@@ -39,4 +39,4 @@ object RegexVerificationPredicate
 
 def apply(config: File): RegexVerificationPredicate =
   VerificationConfigReader
-*/
+ */

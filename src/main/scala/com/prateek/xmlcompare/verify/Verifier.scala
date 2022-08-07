@@ -55,7 +55,7 @@ object Verifier:
   def apply(
       expValidFiles: Seq[Valid],
       actValidFiles: Seq[Valid],
-    verificationPredicate: VerificationPredicate
+      verificationPredicate: VerificationPredicate
   ): Seq[FileVerificationResult] =
     type ActualFileVerificationResult = (File, VerificationResult)
 
