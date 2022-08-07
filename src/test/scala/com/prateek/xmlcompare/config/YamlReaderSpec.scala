@@ -10,11 +10,11 @@ import com.prateek.xmlcompare.config.VerifierId.*
 
 class YamlReaderSpec extends AnyFunSpec:
   describe(
-    "reading yaml/criteria-config.yaml that contains configuration for label, text and child"
+    "reading config/criteria-config.yaml that contains configuration for label, text and child"
   ) {
     it("VerificationConfig is correctly populated with the Seq[MessageVerificationConfig]") {
       val vc =
-        val url: URL = getClass.getClassLoader.getResource("yaml/criteria-config.yaml")
+        val url: URL = getClass.getClassLoader.getResource("config/criteria-config.yaml")
         YamlReader(new File(url.toURI))
 
       vc.discoverResponse match
