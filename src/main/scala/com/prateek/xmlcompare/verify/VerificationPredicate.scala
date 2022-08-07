@@ -2,7 +2,7 @@ package com.prateek.xmlcompare.verify
 
 import java.io.File
 
-import com.prateek.xmlcompare.config.{MVC, VerificationConfig, VerifierId}
+import com.prateek.xmlcompare.config.{MVC, VerificationConfig, VerifierId, YamlReader}
 import com.prateek.xmlcompare.read.{DiscoverResponse, Message}
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
@@ -12,7 +12,8 @@ trait VerificationPredicate:
 
 object VerificationPredicate:
   def apply(config: File): VerificationPredicate = new RegexVerificationPredicate(
-    VerificationConfig(Nil: Seq[MVC])
+    //    TODO: this can also be considered to be moved to RegexVerificationPredicate but deferring this now
+    vc = YamlReader(config)
   )
 
 class RegexVerificationPredicate(vc: VerificationConfig) extends VerificationPredicate:
