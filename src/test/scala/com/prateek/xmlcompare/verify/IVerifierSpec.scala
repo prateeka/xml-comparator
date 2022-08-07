@@ -19,8 +19,8 @@ below code is commented as now we cannot provide Verifer with the Seq[Verifier] 
 by converting into an integration test which considers all the verifiers instead of chosen one; and also, we should provide the test
 config file
  */
-@Ignore
-class VerifierSpec extends AnyFunSpec {
+
+class IVerifierSpec extends AnyFunSpec {
 
   import org.scalatest.Ignore
 
@@ -65,17 +65,19 @@ class VerifierSpec extends AnyFunSpec {
             )
             val evs: Seq[Valid] = Seq(ev1, ev2)
             val avs: Seq[Valid] = Seq(av1, av2)
-            /*
-            val vrs = Verifier(evs, avs, NodeVerifier(Seq(LabelVerifier(vp))))
+            val vrs = {
+              val f = getClass.getResource("/config/IVerifierSpec-config.yaml").getFile
+              val vp = VerificationPredicate(f)
+              Verifier(evs, avs, vp)
+            }
             vrs should contain theSameElementsInOrderAs Seq(
               FVR("e1", "a1", Match),
               FVR("e2", "a2", Match)
             )
-             */
           }
         }
 
-        describe("using Label, Attribute and Child verification") {
+        /*        describe("using Label, Attribute and Child verification") {
           it(
             "one expected file finds a match and the second expected file finds a mismatch with the correct missing node"
           ) {
@@ -131,21 +133,22 @@ class VerifierSpec extends AnyFunSpec {
               ???
             }
 
-            /*            vrs should contain theSameElementsInOrderAs Seq(
+            vrs should contain theSameElementsInOrderAs Seq(
               FVR(
                 "e1",
                 "a2",
                 NodeTextNotFound("n1\\n3\\n6\\%TEXT")
               ),
               FVR("e2", "a1", Match)
-            )*/
+            )
           }
-        }
+        }*/
       }
 
-      describe(
+      /*      describe(
         "file2: only the nodes of an expected file and its corresponding actual file match while the attibutes DO NOT match"
-      ) {
+      )
+      {
         describe("using Label, Attribute and Child verification") {
           it(
             "one expected file finds a match and the second expected file finds a attibute mismatch with the correct attribute node"
@@ -193,17 +196,17 @@ class VerifierSpec extends AnyFunSpec {
               ???
             }
 
-            /*            vs should contain theSameElementsInOrderAs Seq(
+            vs should contain theSameElementsInOrderAs Seq(
               FVR(
                 "e1",
                 "a2",
                 AttributeMissing("n1\\n5\\@a55")
               ),
               FVR("e2", "a1", Match)
-            )*/
+            )
           }
         }
-      }
+      }*/
     }
   }
 
