@@ -10,4 +10,4 @@ compare the below:
    requests across projects to identify the differences.
 
 next step:
-update VerifierSpec to intergration test to check the end to end flow
+test end to end now for a discoverResponse file
