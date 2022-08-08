@@ -132,7 +132,7 @@ class NodeVerifier(vs: => Seq[Verifier]) extends Verifier {
   */
 class ChildVerifier(
     rootVerifier: => Verifier,
-  vp: VerificationPredicate
+    vp: VerificationPredicate
 ) extends Verifier {
   override val id: VerifierId = VerifierId.Child
   private val logger = scalalogging.Logger(getClass)

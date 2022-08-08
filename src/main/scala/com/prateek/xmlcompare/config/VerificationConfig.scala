@@ -1,9 +1,8 @@
 package com.prateek.xmlcompare.config
 
 type XPathRegex = String
-type MVC = MessageVerificationConfig
-type Verifiers = MessageVerificationConfig
-type MessageVerificationConfig = (XPathRegex, Set[VerifierId])
+//MessageVerificationConfig
+type MVC = (XPathRegex, Set[VerifierId])
 
 case class VerificationConfig(discoverResponse: Seq[MVC])
 

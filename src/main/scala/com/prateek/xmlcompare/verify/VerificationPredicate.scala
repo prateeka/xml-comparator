@@ -17,20 +17,23 @@ object VerificationPredicate:
   )
 
 class RegexVerificationPredicate(vc: VerificationConfig) extends VerificationPredicate:
-  override def apply(msg: Message, vid: VerifierId, xp: XPath): Boolean =
+  override def apply(msg: Message, vid: VerifierId, xmlXPath: XPath): Boolean =
     // checks if config provided xpath matches the xml file xpath
     def matches(cxp: XPath): Boolean =
       val regex = cxp.r
-      regex.matches(xp)
+      regex.matches(xmlXPath)
     end matches
 
     msg match
       case DiscoverResponse =>
-        val matchingVerifierIds = vc.discoverResponse.collect({
-          case (configXpath: XPath, vids) if matches(configXpath) => vids
-        })
-        val minMatchingVerifiers = matchingVerifierIds.minBy(_.size)
-        minMatchingVerifiers.contains(vid)
+        val matchingMVCsOpt: Option[Seq[MVC]] = {
+          val value = vc.discoverResponse.collect({
+            case mvc @ (configXpath: XPath, _) if matches(configXpath) => mvc
+          })
+          if value.isEmpty then None else Option(value)
+        }
+        val mostSpecificMVC = matchingMVCsOpt.map(_.maxBy(_._1))
+        mostSpecificMVC.exists(_._2.contains(vid))
       case _ => ???
   end apply
 end RegexVerificationPredicate
