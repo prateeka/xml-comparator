@@ -117,7 +117,7 @@ class IVerifierSpec extends AnyFunSpec {
                 <n2>node 2</n2>
                 <n3>
                   <n4>node 4</n4>
-                  <n7>node 6</n7>
+                  <n6>node 6</n6>
                 </n3>
               </n1>
             )
