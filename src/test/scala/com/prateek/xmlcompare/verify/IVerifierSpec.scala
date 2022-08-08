@@ -188,7 +188,7 @@ class IVerifierSpec extends AnyFunSpec {
               FVR(
                 "e1",
                 "a2",
-                AttributeMissing("n1\\n5\\@a55")
+                AttributeMissing(raw"n1\n5\@a55")
               ),
               FVR("e2", "a1", Match)
             )
