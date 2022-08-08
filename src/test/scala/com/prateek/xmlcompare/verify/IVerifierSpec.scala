@@ -66,7 +66,7 @@ class IVerifierSpec extends AnyFunSpec {
             val evs: Seq[Valid] = Seq(ev1, ev2)
             val avs: Seq[Valid] = Seq(av1, av2)
             val vrs = {
-              val f = getClass.getResource("/config/IVerifierSpec-config.yaml").getFile
+              val f = getClass.getResource("/config/IVerifierSpec-1-config.yaml").getFile
               val vp = VerificationPredicate(f)
               Verifier(evs, avs, vp)
             }
@@ -117,7 +117,7 @@ class IVerifierSpec extends AnyFunSpec {
                 <n2>node 2</n2>
                 <n3>
                   <n4>node 4</n4>
-                  <n6>node 6</n6>
+                  <n7>node 6</n7>
                 </n3>
               </n1>
             )
@@ -125,12 +125,9 @@ class IVerifierSpec extends AnyFunSpec {
             val avs: Seq[Valid] = trimNode(av1, av2)
 
             val vrs = {
-              lazy val verifiers: Seq[Verifier] =
-                Seq(LabelVerifier(vp), TextVerifier(vp), AttributeVerifier(vp), cv)
-              lazy val nv: NodeVerifier = NodeVerifier(verifiers)
-              lazy val cv: ChildVerifier = ChildVerifier(nv, vp)
-              //              Verifier(evs, avs, nv)
-              ???
+              val f = getClass.getResource("/config/IVerifierSpec-2-config.yaml").getFile
+              val vp = VerificationPredicate(f)
+              Verifier(evs, avs, vp)
             }
 
             vrs should contain theSameElementsInOrderAs Seq(

@@ -85,18 +85,21 @@ object Verifier:
           }
         }
 
-        def maxFileVericationResult: FileVerificationResult = vrs
-          .maxByOption({ case ActualFileVerificationResult(_, vr) => vr })
-          .map({ case ActualFileVerificationResult(af, vr) =>
-            FileVerificationResult(ef, af, vr)
-          })
-          .get
+        val fvr =
+          def maxFileVericationResult: FileVerificationResult = vrs
+            .maxByOption({ case ActualFileVerificationResult(_, vr) => vr })
+            .map({ case ActualFileVerificationResult(af, vr) =>
+              FileVerificationResult(ef, af, vr)
+            })
+            .get
 
-        val fvr = actValidFiles
-          .collectFirst({ case InputFileCompare(ActualFileVerificationResult(af, Match)) =>
-            FileVerificationResult(ef, af, Match)
-          })
-          .getOrElse(maxFileVericationResult)
+          val maybeResult = actValidFiles
+            .collectFirst({ case InputFileCompare(ActualFileVerificationResult(af, Match)) =>
+              FileVerificationResult(ef, af, Match)
+            })
+          maybeResult.getOrElse(maxFileVericationResult)
+        end fvr
+
         fvr
       })
     fvrs
@@ -240,7 +243,7 @@ case class TextVerifier(vp: VerificationPredicate) extends Verifier {
           val xp = ctx.xpath.appendText()
           val vr = if vp(ctx.msg, id, xp) then compare(et, at, xp) else Match
           Option(vr)
-        case _                    => None
+        case _ => None
       end unapply
 
       private def compare(et: String, at: String, xp: XPath) =
@@ -258,7 +261,7 @@ case class TextVerifier(vp: VerificationPredicate) extends Verifier {
   private given logger: Logger = scalalogging.Logger(getClass)
 }
 
-case class AttributeVerifier(vp: VerificationPredicate) extends Verifier :
+case class AttributeVerifier(vp: VerificationPredicate) extends Verifier:
   override val id: VerifierId = VerifierId.Attribute
 
   override def apply(exp: Node, act: Node)(using ctx: VerificationContext): VerificationResult =

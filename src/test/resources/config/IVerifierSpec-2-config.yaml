@@ -1,0 +1,9 @@
+discoverResponse:
+  - n1\\(.+\\)*[^\\]*:
+      - Label
+      - Text
+      - Child
+  - n1:
+      - Label
+      - Text
+      - Child
