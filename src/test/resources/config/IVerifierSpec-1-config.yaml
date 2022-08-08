@@ -1,5 +1,3 @@
 discoverResponse:
-  - n1:
-      - Label
-  - n2:
+  - \w+:
       - Label
