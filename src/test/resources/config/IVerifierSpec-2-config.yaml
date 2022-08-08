@@ -1,9 +1,6 @@
 discoverResponse:
-  - n1\\(.+\\)*[^\\]*:
+  - \w+(\\[^\\]+)*:
       - Label
       - Text
       - Child
-  - n1:
-      - Label
-      - Text
-      - Child
+      - Attribute

@@ -134,7 +134,7 @@ class IVerifierSpec extends AnyFunSpec {
               FVR(
                 "e1",
                 "a2",
-                NodeTextNotFound("n1\\n3\\n6\\%TEXT")
+                NodeTextNotFound(raw"n1\n3\n6\%TEXT")
               ),
               FVR("e2", "a1", Match)
             )
