@@ -14,12 +14,6 @@ import com.prateek.xmlcompare.read.{trim, DiscoverResponse, Message, Valid}
 import com.prateek.xmlcompare.stringToFile
 import com.prateek.xmlcompare.verify.XPathFactory.XPath
 
-/*
-below code is commented as now we cannot provide Verifer with the Seq[Verifier]  only intended to run. Going fwd, fix this test
-by converting into an integration test which considers all the verifiers instead of chosen one; and also, we should provide the test
-config file
- */
-
 class IVerifierSpec extends AnyFunSpec {
 
   import org.scalatest.Ignore
@@ -66,7 +60,7 @@ class IVerifierSpec extends AnyFunSpec {
             val evs: Seq[Valid] = Seq(ev1, ev2)
             val avs: Seq[Valid] = Seq(av1, av2)
             val vrs = {
-              val f = getClass.getResource("/config/IVerifierSpec-1-config.yaml").getFile
+              val f = getClass.getResource("/config/IVerifierSpec-config-1.yaml").getFile
               val vp = VerificationPredicate(f)
               Verifier(evs, avs, vp)
             }
@@ -125,7 +119,7 @@ class IVerifierSpec extends AnyFunSpec {
             val avs: Seq[Valid] = trimNode(av1, av2)
 
             val vrs = {
-              val f = getClass.getResource("/config/IVerifierSpec-2-config.yaml").getFile
+              val f = getClass.getResource("/config/IVerifierSpec-config-2.yaml").getFile
               val vp = VerificationPredicate(f)
               Verifier(evs, avs, vp)
             }
@@ -142,10 +136,9 @@ class IVerifierSpec extends AnyFunSpec {
         }
       }
 
-      /*      describe(
+      describe(
         "file2: only the nodes of an expected file and its corresponding actual file match while the attibutes DO NOT match"
-      )
-      {
+      ) {
         describe("using Label, Attribute and Child verification") {
           it(
             "one expected file finds a match and the second expected file finds a attibute mismatch with the correct attribute node"
@@ -185,15 +178,13 @@ class IVerifierSpec extends AnyFunSpec {
             val evs: Seq[Valid] = trimNode(ev1, ev2)
             val avs: Seq[Valid] = trimNode(av1, av2)
 
-            val vs = {
-              lazy val verifiers: Seq[Verifier] = Seq(LabelVerifier(vp), AttributeVerifier(vp), cv)
-              lazy val nv: NodeVerifier = NodeVerifier(verifiers)
-              lazy val cv: ChildVerifier = ChildVerifier(nv, vp)
-              //              Verifier(evs, avs, nv)
-              ???
+            val vrs = {
+              val f = getClass.getResource("/config/IVerifierSpec-config-2.yaml").getFile
+              val vp = VerificationPredicate(f)
+              Verifier(evs, avs, vp)
             }
 
-            vs should contain theSameElementsInOrderAs Seq(
+            vrs should contain theSameElementsInOrderAs Seq(
               FVR(
                 "e1",
                 "a2",
@@ -203,7 +194,7 @@ class IVerifierSpec extends AnyFunSpec {
             )
           }
         }
-      }*/
+      }
     }
   }
 
