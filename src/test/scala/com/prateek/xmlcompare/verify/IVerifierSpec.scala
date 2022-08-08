@@ -77,7 +77,7 @@ class IVerifierSpec extends AnyFunSpec {
           }
         }
 
-        /*        describe("using Label, Attribute and Child verification") {
+        describe("using Label, Attribute and Child verification") {
           it(
             "one expected file finds a match and the second expected file finds a mismatch with the correct missing node"
           ) {
@@ -142,7 +142,7 @@ class IVerifierSpec extends AnyFunSpec {
               FVR("e2", "a1", Match)
             )
           }
-        }*/
+        }
       }
 
       /*      describe(

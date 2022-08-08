@@ -1,14 +1,5 @@
 discoverResponse:
   - n1:
       - Label
-      - Text
   - n2:
       - Label
-      - Text
-      - Child
-  - a1:
-      - Label
-      - Child
-  - a2:
-      - Label
-      - Child
