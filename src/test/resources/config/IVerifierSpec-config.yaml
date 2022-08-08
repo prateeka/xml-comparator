@@ -1,11 +1,14 @@
 discoverResponse:
-  - n1\\n2\\(.+\\)*n5:
+  - n1:
+      - Label
+      - Text
+  - n2:
       - Label
       - Text
       - Child
-  - n1\\n2\\n3\\%TEXT:
-      - Ignore
-  - n1\\n2\\n3\\@a1:
+  - a1:
       - Label
-      - Text
-      - Attribute
+      - Child
+  - a2:
+      - Label
+      - Child

@@ -26,15 +26,12 @@ class RegexVerificationPredicate(vc: VerificationConfig) extends VerificationPre
 
     msg match
       case DiscoverResponse =>
-        val matchingMVCsOpt: Option[Seq[MVC]] = {
-          val value = vc.discoverResponse.collect({
-            case mvc @ (configXpath: XPath, _) if matches(configXpath) => mvc
-          })
-          if value.isEmpty then None else Option(value)
-        }
-        val mostSpecificMVC = matchingMVCsOpt.map(_.maxBy(_._1))
+        val matchingMVCsOpt: Seq[MVC] = vc.discoverResponse.collect({
+          case mvc@(configXpath: XPath, _) if matches(configXpath) => mvc
+        })
+        val mostSpecificMVC: Option[MVC] = matchingMVCsOpt.maxByOption(_._1)
         mostSpecificMVC.exists(_._2.contains(vid))
-      case _ => ???
+      case _                => ???
   end apply
 end RegexVerificationPredicate
 
